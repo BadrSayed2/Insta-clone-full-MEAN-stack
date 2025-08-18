@@ -1,0 +1,26 @@
+const mongoose = (require('../config/db_config')).mongoose
+
+const post_schema = new mongoose.Schema({
+    caption: String,
+    media: {
+        url: String,
+        media_type: {
+            type: String,
+            enum: ["video", "picture"]
+        },
+        required: true
+    },
+    user_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    commentsNumber :{
+        type : Number,
+        default : 0
+    }
+}, { timestamps: true })
+
+const Post = mongoose.model('Post', post_schema)
+
+module.exports = Post;
