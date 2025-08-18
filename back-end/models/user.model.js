@@ -37,7 +37,11 @@ const user_schema = new mongoose.Schema({
     },
 
     phoneNumber: String,
-
+    
+    isVerified:{
+        type:Boolean,
+        default:false
+    }
 }, { timestamps: true })
 
 const User = mongoose.model('User' , user_schema)
