@@ -1,0 +1,30 @@
+------------------------------Badr------------------------------------
+verify_otp
+add post
+update post
+get profile
+browsing posts
+get my followers
+
+comment a post
+update a comment
+------------------------------Adham------------------------------------
+forget_password
+reset_password
+update profile
+get another user posts
+delete a post
+
+get post details
+get another user followers
+search a user
+------------------------------Zakaria------------------------------------
+login
+sign_up
+get another user profile
+get my posts
+follow a user
+
+react to a post
+react to a comment
+delete a comment
