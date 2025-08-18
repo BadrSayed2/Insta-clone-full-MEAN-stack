@@ -1,0 +1,677 @@
+openapi: 3.1.0
+info:
+  title: APIFiddle Sample Definition
+  version: 0.0.0
+  description: Example workspace
+paths:
+  /profile:
+    get:
+      summary: get user profile
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+                title: GetUserProfileOk
+          description: The request was successful, and the server has returned the
+            requested resource in the response body.
+        "401":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+                title: GetUserProfileUnauthorized
+          description: Authentication is required to access the requested resource. The
+            client must include the appropriate credentials.
+      operationId: getUserProfile
+    put:
+      summary: update profile
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                title: UpdateProfileOk
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+          description: The request was successful, and the server has returned the
+            requested resource in the response body.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+          description: Authentication is required to access the requested resource. The
+            client must include the appropriate credentials.
+      operationId: updateProfile
+  /post/new:
+    post:
+      summary: make a post
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                type: object
+                title: MakeAPostCreated
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+          description: The request was successful, and a new resource was created.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+          description: Authentication is required to access the requested resource. The
+            client must include the appropriate credentials.
+      operationId: makeAPost
+  /post/mine:
+    get:
+      summary: get my posts
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                title: GetMyPostsOk
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+          description: The request was successful, and the server has returned the
+            requested resource in the response body.
+        "401":
+          content:
+            application/json:
+              schema:
+                type: object
+                title: GetMyPostsUnauthorized
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+          description: Authentication is required to access the requested resource. The
+            client must include the appropriate credentials.
+      operationId: getMyPosts
+  /user/login:
+    post:
+      summary: make user login
+      responses:
+        "200":
+          $ref: "#/components/responses/Ok"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+      operationId: makeUserLogin
+  /post/{post}:
+    put:
+      summary: update a post
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+                title: UpdateAPostOk
+          description: The request was successful, and the server has returned the
+            requested resource in the response body.
+        "401":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+                title: UpdateAPostUnauthorized
+          description: Authentication is required to access the requested resource. The
+            client must include the appropriate credentials.
+      parameters:
+        - $ref: "#/components/parameters/post"
+      operationId: updateAPost
+    delete:
+      summary: delete post
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                type: "null"
+                title: DeletePostNoContent
+          description: The request was successful, but there is no content to return in
+            the response.
+        "401":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+                title: DeletePostUnauthorized
+          description: Authentication is required to access the requested resource. The
+            client must include the appropriate credentials.
+      parameters:
+        - $ref: "#/components/parameters/post"
+      operationId: deletePost
+  /post/{user}:
+    get:
+      summary: get posts of another user
+      responses:
+        "200":
+          $ref: "#/components/responses/Ok"
+        "401":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+          description: Authentication is required to access the requested resource. The
+            client must include the appropriate credentials.
+      parameters:
+        - $ref: "#/components/parameters/user"
+      operationId: getPost
+  /user/follow:
+    post:
+      summary: follow a user
+      responses:
+        "200":
+          $ref: "#/components/responses/Ok"
+        "401":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+          description: Authentication is required to access the requested resource. The
+            client must include the appropriate credentials.
+      operationId: followAUser
+  /posts/browse:
+    get:
+      summary: browsing posts
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+                title: BrowsingPostsOk
+          description: The request was successful, and the server has returned the
+            requested resource in the response body.
+        "401":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+                title: BrowsingPostsUnauthorized
+          description: Authentication is required to access the requested resource. The
+            client must include the appropriate credentials.
+      operationId: browsingPosts
+  /user/sign_up:
+    post:
+      summary: sign_up
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                type: object
+                title: SignUpCreated
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+          description: The request was successful, and a new resource was created.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+      parameters: []
+      description: |
+        makes a user able to sign up and create a new account
+      operationId: signUp
+  /followers/mine:
+    get:
+      summary: get my followes
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+                title: GetMyFollowesOk
+          description: The request was successful, and the server has returned the
+            requested resource in the response body.
+        "401":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+                title: GetMyFollowesUnauthorized
+          description: Authentication is required to access the requested resource. The
+            client must include the appropriate credentials.
+      operationId: getMyFollowes
+  /profile/{user}:
+    get:
+      summary: get another user profile
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+                title: GetProfileOk
+          description: The request was successful, and the server has returned the
+            requested resource in the response body.
+        "401":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+                title: GetProfileUnauthorized
+          description: Authentication is required to access the requested resource. The
+            client must include the appropriate credentials.
+      parameters:
+        - $ref: "#/components/parameters/user"
+      operationId: getProfile
+  /followers/{user}:
+    get:
+      summary: get followers of another user
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+                title: GetFollowersOfAnotherUserOk
+          description: The request was successful, and the server has returned the
+            requested resource in the response body.
+        "401":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+                title: GetFollowersOfAnotherUserUnauthorized
+          description: Authentication is required to access the requested resource. The
+            client must include the appropriate credentials.
+      parameters:
+        - $ref: "#/components/parameters/user"
+      operationId: getFollowersOfAnotherUser
+  /comment/{comment}:
+    put:
+      summary: update a comment
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+                title: UpdateACommentOk
+          description: The request was successful, and the server has returned the
+            requested resource in the response body.
+        "401":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+                title: UpdateACommentUnauthorized
+          description: Authentication is required to access the requested resource. The
+            client must include the appropriate credentials.
+      parameters:
+        - $ref: "#/components/parameters/comment"
+      operationId: updateAComment
+    delete:
+      summary: delete a comment
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                type: "null"
+                title: DeleteACommentNoContent
+          description: The request was successful, but there is no content to return in
+            the response.
+        "401":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+                title: DeleteACommentUnauthorized
+          description: Authentication is required to access the requested resource. The
+            client must include the appropriate credentials.
+      parameters:
+        - $ref: "#/components/parameters/comment"
+      operationId: deleteAComment
+  /post/{post}/comment:
+    post:
+      summary: make a comment
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+                title: MakeACommentCreated
+          description: The request was successful, and a new resource was created.
+        "401":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+                title: MakeACommentUnauthorized
+          description: Authentication is required to access the requested resource. The
+            client must include the appropriate credentials.
+      parameters:
+        - $ref: "#/components/parameters/post"
+      operationId: makeAComment
+  /post/{post}/details:
+    get:
+      summary: get post details
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+                title: GetPostDetailsOk
+          description: The request was successful, and the server has returned the
+            requested resource in the response body.
+        "401":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+                title: GetPostDetailsUnauthorized
+          description: Authentication is required to access the requested resource. The
+            client must include the appropriate credentials.
+      parameters:
+        - $ref: "#/components/parameters/post"
+      operationId: getPostDetails
+  /user/reset_password:
+    post:
+      summary: reset password
+      responses:
+        "200":
+          $ref: "#/components/responses/Ok"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+      operationId: resetPassword
+  /user/forget_password:
+    post:
+      summary: forgot password
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+                title: ForgotPasswordCreated
+          description: The request was successful, and a new resource was created.
+      operationId: forgotPassword
+  /user/search/{search_text}:
+    get:
+      summary: search a user
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+                title: SearchAUserOk
+          description: The request was successful, and the server has returned the
+            requested resource in the response body.
+        "401":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+                title: SearchAUserUnauthorized
+          description: Authentication is required to access the requested resource. The
+            client must include the appropriate credentials.
+      parameters:
+        - $ref: "#/components/parameters/search_text"
+      operationId: searchAUser
+  /post/{post}/react:
+    post:
+      summary: react to a post
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+                title: LikeAPostCreated
+          description: The request was successful, and a new resource was created.
+        "401":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+                title: LikeAPostUnauthorized
+          description: Authentication is required to access the requested resource. The
+            client must include the appropriate credentials.
+      parameters:
+        - $ref: "#/components/parameters/post"
+      operationId: reactToAPost
+components:
+  responses:
+    Ok:
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - data
+            properties:
+              data:
+                type: object
+      description: The request was successful, and the server has returned the
+        requested resource in the response body.
+    BadRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+            properties:
+              errors:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - message
+                  properties:
+                    message:
+                      type: string
+              message:
+                type: string
+      description: The server could not understand the request due to invalid syntax.
+        The client should modify the request and try again.
+    Unauthorized:
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+      description: Authentication is required to access the requested resource. The
+        client must include the appropriate credentials.
+  parameters:
+    post:
+      in: path
+      name: post
+      schema:
+        type: string
+      required: true
+    user:
+      in: path
+      name: user
+      schema:
+        type: string
+      required: true
+    comment:
+      in: path
+      name: comment
+      schema:
+        type: string
+      required: true
+    search_text:
+      in: path
+      name: search_text
+      schema:
+        type: string
+      required: true
