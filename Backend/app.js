@@ -1,6 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const swaggerUi = require('swagger-ui-express');
+const  routerUser  = require('./routes/user.router');
 
 const fs = require('fs');
 const yaml = require('js-yaml');
@@ -18,6 +19,7 @@ DB.connect_to_mongodb()
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapiSpec));
 
+app.use("/user", routerUser);
 
 app.get('/',(req,res)=>{
     res.send("welcome to insta app")

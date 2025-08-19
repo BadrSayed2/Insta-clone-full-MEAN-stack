@@ -29,7 +29,10 @@ const user_schema = new mongoose.Schema({
     profile_pic: String,
 
     bio: String,
-
+    confirmEmail: {
+        type: Boolean,
+        default: false
+    },
     gender: {
         type: String,
         enum: ["male", "female"],
