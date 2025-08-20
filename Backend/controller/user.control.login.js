@@ -19,7 +19,9 @@ export const login = async (req , res)=>{
         }
         user.phone = CryptoJS.AES.decrypt(user.phoneNumber , process.env.ENCRYPT).toString(CryptoJS.enc.Utf8)
 
-        return res.status(200).json({message : "done" })
+        const token = jwt.sign( { id: user._id },process.env.JWT_SECRET,{ expiresIn: "1h" } )
+
+        return res.status(200).json({message : "done" , token })
 
     } catch (error) {
         

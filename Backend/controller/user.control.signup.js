@@ -54,11 +54,12 @@ const signup = async (req, res) => {
     });
 
     emailEvent.emit("sendConfirmEmail", { email });
-
+    const token = jwt.sign( { id: user._id },process.env.JWT_SECRET,{ expiresIn: "1h" } )
     return res.status(201).json({
+      
       message:
         "The account has been created successfully. Please confirm your email.",
-      user,
+      token,
     });
   } catch (error) {
     console.error("Signup error:", error);
