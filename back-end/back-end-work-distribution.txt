@@ -1,5 +1,5 @@
 ------------------------------Badr------------------------------------
-verify_otp
+verify_otp //done
 add post
 update post
 get profile
