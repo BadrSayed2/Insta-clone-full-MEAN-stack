@@ -6,18 +6,18 @@ const post_schema = new mongoose.Schema({
         url: String,
         media_type: {
             type: String,
-            enum: ["video", "picture"]
+            enum: ["video", "picture"],
+            required: true
         },
-        required: true
     },
     user_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
-    commentsNumber :{
-        type : Number,
-        default : 0
+    commentsNumber: {
+        type: Number,
+        default: 0
     }
 }, { timestamps: true })
 

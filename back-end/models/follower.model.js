@@ -1,19 +1,20 @@
-const mongoose = (require('../config/db_config')).mongoose
+const mongoose = (require('../config/db_config')).mongoose;
 
-const OTP_schema = new mongoose.Schema({
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    followd: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    
-}, { timestamps: true  })
+const followers_schema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  followed: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+}, { timestamps: true });
 
-const OTP = mongoose.model('OTP', OTP_schema)
+followers_schema.index({ user: 1, followed: 1 });
 
-module.exports = OTP;
+const Follower = mongoose.model('Follower', followers_schema);
+
+module.exports = Follower;

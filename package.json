@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/BadrSayed2/Insta-clone-full-MEAN-stack/issues"
   },
-  "homepage": "https://github.com/BadrSayed2/Insta-clone-full-MEAN-stack#readme"
+  "homepage": "https://github.com/BadrSayed2/Insta-clone-full-MEAN-stack#readme",
+  "dependencies": {
+    "cloudinary": "^2.7.0"
+  }
 }

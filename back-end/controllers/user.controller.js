@@ -17,12 +17,10 @@ const refresh_public_key = fs.readFileSync('./keys/refresh/refresh_public_key.pe
 
 user_controller.verify_otp = async (req, res) => {
   try {
-
-
     const cookie = req?.cookies["OTP_verification_token"]
 
     if (!cookie) {
-      return res.status(401).json({ message: "you need to login", success: false })
+      return res.status(401).json({ err: "you need to login", success: false })
     }
 
     const payload = jwt.verify(token, OTP_public_key, { algorithms: "RS256" })
@@ -31,7 +29,7 @@ user_controller.verify_otp = async (req, res) => {
     const user = await User.findOne({ phoneNumber: payload.phoneNumber })
 
     if (!user) {
-      return res.status(401).json({ message: "you need to login", success: false })
+      return res.status(401).json({ err: "you need to login", success: false })
     }
 
     const db_code = await OTP.findOne({ user_id: user._id })
