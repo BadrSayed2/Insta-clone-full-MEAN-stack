@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const { EventEmitter } = require("events");
 const { confirmEmailTemplate } = require("./confirmEmailTemplate.js");
 const { sendEmail } = require("./nodemailer.utils.js");
+const logger = require("./logger");
 
 const emailEvent = new EventEmitter();
 
@@ -19,7 +20,7 @@ emailEvent.on("sendConfirmEmail", async ({ email } = {}) => {
       html: confirmEmailTemplate({ link }),
     });
   } catch (err) {
-    console.error("Email Event Error:", err.message);
+    logger.error(`Email Event Error: ${err.message}`);
   }
 });
 

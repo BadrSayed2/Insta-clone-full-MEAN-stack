@@ -1,11 +1,11 @@
 const OTP = require("../models/follower.model");
 const User = require("../models/user.model");
+const logger = require("../utils/logger");
 
 const followUser = async (req, res) => {
   const { userIdToFollow } = req.body;
   const currentUserId = req.user.id;
-  console.log(userIdToFollow);
-  console.log(currentUserId);
+  logger.debug(`Follow request target=${userIdToFollow} by=${currentUserId}`);
 
   if (currentUserId === userIdToFollow) {
     return res.status(400).json({ message: "You cannot follow yourself" });
