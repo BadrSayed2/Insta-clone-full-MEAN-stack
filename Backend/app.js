@@ -7,7 +7,7 @@ const fs = require("fs");
 const yaml = require("js-yaml");
 const openapiSpec = yaml.load(fs.readFileSync("./openapi.yaml", "utf8"));
 const DB = require("./config/db_config");
-
+const { globalError, handleNotFound } = require("./middlewares/global-error");
 const app = express();
 
 dotenv.config();
@@ -16,9 +16,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 DB.connect_to_mongodb();
-
+//! Routes
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openapiSpec));
 
-app.use("/user", routerUser);
+app.use("/auth", routerUser);
+
+app.use(handleNotFound);
+app.use(globalError);
 
 module.exports = app;
