@@ -2,6 +2,8 @@ const bcrypt = require("bcryptjs");
 const CryptoJS = require("crypto-js");
 const { emailEvent } = require("../utils/email.event.utils");
 const User = require("../models/user.model");
+const jwt = require("jsonwebtoken");
+
 
 const signup = async (req, res) => {
   try {
