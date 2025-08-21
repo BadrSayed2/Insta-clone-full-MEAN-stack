@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken')
 
 const User = require('../models/user.model')
 const OTP = require('../models/OTP.model')
+const Post = require('../models/post.model')
 
 const user_controller = {}
 
@@ -75,5 +76,26 @@ user_controller.verify_otp = async (req, res) => {
   }
 
 }
+user_controller.get_profile = async (req, res) => {
+  try {
 
+    const user_id = req?.user_id
+    const profile = await User
+      .findById(user_id)
+      .select("-password -_id -email -phoneNumber -isVerified")
+      .lean()
+    
+    const user_posts = await Post.find({ user_id })
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .lean()
+    res.json({profile , user_posts})
+  } catch (e) {
+    console.log(e.message);
+    res.status(500).json({ err: "internal server error" })
+
+  }
+
+
+}
 module.exports = user_controller

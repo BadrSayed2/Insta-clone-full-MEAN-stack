@@ -1,8 +1,8 @@
 ------------------------------Badr------------------------------------
 verify_otp //done
 add post //done
-update post
-get profile
+update post //done
+get profile //done
 browsing posts
 get my followers
 
