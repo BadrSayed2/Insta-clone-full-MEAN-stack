@@ -2,9 +2,6 @@ const bcrypt = require("bcryptjs");
 const CryptoJS = require("crypto-js");
 const { emailEvent } = require("../utils/email.event.utils");
 const User = require("../models/user.model");
-const jwt = require("jsonwebtoken");
-
-
 const signup = async (req, res) => {
   try {
     const {
@@ -15,7 +12,6 @@ const signup = async (req, res) => {
       confirmationPassword,
       phoneNumber,
       gender,
-      accessabilty,
       bio,
       DOB,
     } = req.body;
@@ -35,7 +31,7 @@ const signup = async (req, res) => {
 
     const hashPassword = await bcrypt.hash(
       password,
-      parseInt(process.env.SOLT)
+      parseInt(process.env.SALT)
     );
 
     const encryptedPhone = CryptoJS.AES.encrypt(
@@ -50,15 +46,15 @@ const signup = async (req, res) => {
       password: hashPassword,
       phoneNumber: encryptedPhone,
       gender,
-      accessabilty,
       bio,
       DOB,
     });
 
     emailEvent.emit("sendConfirmEmail", { email });
-    const token = jwt.sign( { id: user._id },process.env.JWT_SECRET,{ expiresIn: "1h" } )
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
     return res.status(201).json({
-      
       message:
         "The account has been created successfully. Please confirm your email.",
       token,

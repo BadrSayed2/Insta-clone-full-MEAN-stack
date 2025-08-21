@@ -1,4 +1,4 @@
-const Follower = require('../models/follower.model');
+const OTP = require('../models/follower.model');
 const User = require('../models/user.model');
 
 const followUser = async (req, res) => {
@@ -22,7 +22,7 @@ const followUser = async (req, res) => {
       return res.status(404).json({ message: "User to follow not found" });
     }
 
-    const follow = await Follower.create({
+    const follow = await OTP.create({
       user: currentUser._id,
       followed: userToFollow._id
     });
