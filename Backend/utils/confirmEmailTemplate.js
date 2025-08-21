@@ -1,5 +1,6 @@
-export const confirmEmailTemplate = ({link = {} })=>{
-    return `<!DOCTYPE html>
+// Converted to CommonJS export so it works with require() calls
+const confirmEmailTemplate = ({ link = {} }) => {
+  return `<!DOCTYPE html>
                 <html>
                 <head>
                     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"></head>
@@ -82,5 +83,7 @@ export const confirmEmailTemplate = ({link = {} })=>{
                 </tr>
                 </table>
                 </body>
-                </html>`
-}
+                </html>`;
+};
+
+module.exports = { confirmEmailTemplate };
