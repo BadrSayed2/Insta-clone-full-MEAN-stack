@@ -1,4 +1,3 @@
-// Converted to CommonJS export so it works with require() calls
 const confirmEmailTemplate = ({ link = {} }) => {
   return `<!DOCTYPE html>
                 <html>
