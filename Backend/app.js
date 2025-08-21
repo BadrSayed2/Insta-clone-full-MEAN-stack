@@ -1,27 +1,28 @@
-const express = require("express");
-const dotenv = require("dotenv");
-const swaggerUi = require("swagger-ui-express");
-const routerUser = require("./routes/user.router");
+const express = require('express');
+const dotenv = require('dotenv');
+const swaggerUi = require('swagger-ui-express');
+const  routerUser  = require('./routes/user.router');
 
-const fs = require("fs");
-const yaml = require("js-yaml");
-const openapiSpec = yaml.load(fs.readFileSync("./openapi.yaml", "utf8"));
-const DB = require("./config/db_config");
-const { globalError, handleNotFound } = require("./middlewares/global-error");
-const app = express();
+const fs = require('fs');
+const yaml = require('js-yaml');
+const openapiSpec = yaml.load(fs.readFileSync('./openapi.yaml', 'utf8'));
+
+const app = express()
 
 dotenv.config();
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({extended : true}))
+const DB = require('./config/db_config');
 
-DB.connect_to_mongodb();
-//! Routes
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openapiSpec));
+DB.connect_to_mongodb()
 
-app.use("/auth", routerUser);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapiSpec));
 
-app.use(handleNotFound);
-app.use(globalError);
+app.use("/user", routerUser);
 
-module.exports = app;
+app.get('/',(req,res)=>{
+    res.send("welcome to insta app")
+})
+
+app.listen(4000, () => { console.log("welcome to mongo db server"); });

@@ -1,3 +1,4 @@
+
 const mongoose = require("../config/db_config").mongoose;
 
 const OTP_schema = new mongoose.Schema(
