@@ -9,6 +9,6 @@ const authRouter = express.Router();
 
 authRouter.post("/signup", signup);
 authRouter.post("/login", login);
-authRouter.patch("/confirm-email", confirmEmail);
+authRouter.get("/verify", confirmEmail);
 
 module.exports = authRouter;

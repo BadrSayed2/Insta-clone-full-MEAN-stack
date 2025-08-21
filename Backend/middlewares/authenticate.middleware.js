@@ -1,35 +1,34 @@
-const jwt = require('jsonwebtoken')
-const dotenv = require('dotenv')
-const user_model = require('../models/user.model')
-
-dotenv.config()
+const jwt = require("jsonwebtoken");
+const user_model = require("../models/user.model");
+const ApiError = require("../utils/api-error");
 
 const authenticate = async (req, res, next) => {
   try {
-    const authHeader = req.headers['authorization']
-    if (!authHeader) {
-      return res.status(401).json({ err: "No token provided" })
-    }
-    
-    const token = authHeader.split(' ')[1]
-    if (!token) {
-        return res.status(401).json({ err: "Invalid token format" })
-    }
-    
-    const user = jwt.verify(token, process.env.JWT_SECRET)
-    
-    const found_user = await user_model.findById(user.id)
+    const authHeader = req.headers["authorization"];
+    if (!authHeader) return next(new ApiError("No token provided", 401));
+
+    const token = authHeader.split(" ")[1];
+    if (!token) return next(new ApiError("Invalid token format", 401));
+
+    const user = jwt.verify(token, process.env.JWT_SECRET);
+
+    const found_user = await user_model.findById(user.id);
     if (!found_user) {
-      return res.status(401).json({ err: "User not found" })
+      return next(new ApiError("User not found", 401));
     }
 
-    // 👇 خلي الاسم userId عشان يمشي مع الكنترولر
-    req.user = { id: user.id }
+    if (!found_user.confirmEmail) {
+      return next(
+        new ApiError("Please confirm your email before proceeding", 403)
+      );
+    }
 
-    next()
+    req.user = { id: user.id };
+
+    next();
   } catch (error) {
-    return res.status(401).json({ err: "Invalid token", details: error.message })
+    next(error);
   }
-}
+};
 
-module.exports = authenticate
+module.exports = authenticate;

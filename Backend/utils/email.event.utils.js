@@ -12,12 +12,14 @@ emailEvent.on("sendConfirmEmail", async ({ email } = {}) => {
       expiresIn: "1h",
     });
 
-    const link = `${tokenActive}`;
+    const apiBase = process.env.API_BASE_URL || "http://localhost:4000";
+    // Direct verification API link (GET)
+    const verifyUrl = `${apiBase}/auth/verify?token=${tokenActive}`;
 
     await sendEmail({
       to: email,
       subject: "hello",
-      html: confirmEmailTemplate({ link }),
+      html: confirmEmailTemplate({ link: verifyUrl }),
     });
   } catch (err) {
     logger.error(`Email Event Error: ${err.message}`);

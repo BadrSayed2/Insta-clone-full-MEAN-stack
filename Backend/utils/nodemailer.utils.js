@@ -1,7 +1,6 @@
 const nodemailer = require("nodemailer");
-const dotenv = require("dotenv");
 const logger = require("./logger");
-dotenv.config();
+const ApiError = require("./api-error");
 
 const transporter = nodemailer.createTransport({
   host: process.env.MAIL_HOST,
@@ -13,19 +12,20 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const sendEmail = async ({ to, subject, html }) => {
+const sendEmail = async ({ to, subject, html, text }) => {
   try {
     const info = await transporter.sendMail({
-      from: `"${process.env.MAIL_NAME}" <${process.env.MAIL_USER}>`,
+      from: `${process.env.MAIL_NAME}`,
       to,
       subject,
-      html,
+      ...(text && { text }),
+      ...(html && { html }),
     });
     logger.info(`Email sent: ${info.messageId}`);
     return info;
   } catch (error) {
+    throw new ApiError("Failed to send email", 500);
     logger.error(`Error sending email: ${error.message}`);
-    throw new Error("Failed to send email");
   }
 };
 
