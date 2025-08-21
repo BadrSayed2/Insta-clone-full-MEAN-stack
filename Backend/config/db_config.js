@@ -1,14 +1,15 @@
 const mongoose = require("mongoose");
 const path = require("path");
+const logger = require("../utils/logger");
 
 const connect_to_mongodb = () => {
   mongoose
     .connect(process.env.MONGO_URL)
     .then(() => {
-      console.log("Database Connected");
+      logger.info("Database Connected");
     })
-    .catch(() => {
-      console.log("Database Connection Failed");
+    .catch((err) => {
+      logger.error(`Database Connection Failed: ${err?.message || ""}`);
     });
 };
 

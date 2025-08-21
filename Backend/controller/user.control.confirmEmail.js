@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
+const logger = require("../utils/logger");
 
 const confirmEmail = async (req, res) => {
   try {
@@ -10,7 +11,7 @@ const confirmEmail = async (req, res) => {
     }
 
     const token = authHeader.split(" ")[1];
-    console.log(token);
+    logger.debug(`Confirm email token received`);
 
     const decoded = jwt.verify(token, process.env.SECRET_KEY_ACTIVE);
 
@@ -26,7 +27,8 @@ const confirmEmail = async (req, res) => {
 
     return res.status(200).json({ message: "Account activated", user });
   } catch (error) {
-    console.error("Signup error:", error);
+    const logger = require("../utils/logger");
+    logger.error(`Signup error: ${error.message}`);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
