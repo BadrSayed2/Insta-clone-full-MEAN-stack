@@ -5,7 +5,7 @@ const {
   verify_otp,
   get_profile,
   get_followers,
-} = require("../controller/user.controller.js");
+} = require("../controllers/user.controller.js");
 const authenticate = require("../middlewares/authenticate.middleware.js");
 
 const router = express.Router();

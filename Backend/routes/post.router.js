@@ -4,7 +4,7 @@ const {
   deletePost,
   add_post_handler,
   update_post_handler,
-} = require("../controller/post.controller.js");
+} = require("../controllers/post.controller.js");
 const authenticate = require("../middlewares/authenticate.middleware.js");
 const upload = require("../config/multer.config.js");
 
