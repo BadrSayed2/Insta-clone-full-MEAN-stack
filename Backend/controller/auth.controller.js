@@ -5,6 +5,8 @@ const User = require("../models/user.model");
 const { emailEvent } = require("../utils/email.event.utils");
 const ApiError = require("../utils/api-error");
 const ApiResponse = require("../utils/api-response");
+const crypto = require("crypto");
+const logger = require("../utils/logger");
 const signup = async (req, res, next) => {
   try {
     const {
@@ -55,15 +57,14 @@ const signup = async (req, res, next) => {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
-    return res
-      .status(201)
-      .json(
-        new ApiResponse(
-          "The account has been created successfully. Please confirm your email.",
-          "success",
-          token
-        )
-      );
+    return res.status(201).json(
+      new ApiResponse({
+        message:
+          "The account has been created successfully. Please check your email for verification.",
+        status: "success",
+        token,
+      })
+    );
   } catch (err) {
     return next(err);
   }
@@ -97,7 +98,9 @@ const login = async (req, res, next) => {
 
     return res
       .status(200)
-      .json(new ApiResponse(null, "done", "success", token));
+      .json(
+        new ApiResponse({ message: "Login successful", token, data: user })
+      );
   } catch (err) {
     return next(err);
   }
@@ -134,5 +137,52 @@ const confirmEmail = async (req, res, next) => {
     return next(err);
   }
 };
+const forgetPassword = async (req, res, next) => {
+  const email = req.body.email;
+  const user = await User.findOne({ email });
+  if (!user)
+    return next(
+      new ApiError("if Email exists activation link will be sent", 404)
+    );
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+  user.passwordResetToken = hashedToken;
+  user.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+  await user.save();
+  const resetUrl = `${process.env.API_BASE_URL}/auth/reset-password?token=${resetToken}`;
+  logger.info(`Password reset URL: ${resetUrl}`);
+  //send email
+  emailEvent.emit("sendResetPasswordEmail", { email, resetUrl });
+  res.status(200).json(
+    new ApiResponse({
+      message: "if Email exists activation link will be sent",
+      url: resetUrl,
+    })
+  );
+};
+const resetPassword = async (req, res, next) => {
+  const { token } = req.query;
+  const { newPassword } = req.body;
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
-module.exports = { signup, login, confirmEmail };
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+  if (!user) {
+    return next(new ApiError("Link is invalid or has expired", 400));
+  }
+
+  user.password = await bcrypt.hash(newPassword, parseInt(process.env.SALT));
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+
+  res
+    .status(200)
+    .json(new ApiResponse({ message: "Password reset successful" }));
+};
+module.exports = { signup, login, confirmEmail, forgetPassword, resetPassword };

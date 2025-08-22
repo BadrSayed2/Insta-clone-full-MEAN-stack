@@ -17,7 +17,7 @@ const sendErrorForDev = (err, res) => {
 const sendErrorForProd = (err, res) => {
   res.status(err.statusCode).json({
     status: err.status,
-    message: err.isExpected ? err.message : "Something went wrong!",
+    message: err.isOperational ? err.message : "Something went wrong!",
     timestamp: new Date().toISOString(),
   });
 };
@@ -61,7 +61,7 @@ const globalError = (err, req, res, next) => {
     // Only handle unexpected errors, don't transform known errors
     let error = { ...err };
     error.message = err.message;
-    if (!error.isExpected) {
+    if (!error.isOperational) {
       logger.error("Unexpected Error:", {
         name: error.name,
         message: error.message,
