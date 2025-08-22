@@ -4,6 +4,9 @@ const jwt = require('jsonwebtoken')
 const User = require('../models/user.model')
 const OTP = require('../models/OTP.model')
 const Post = require('../models/post.model')
+const Follower = require('../models/follower.model')
+
+const get_image_url = require('../utils/get_image_url')
 
 const user_controller = {}
 
@@ -76,6 +79,7 @@ user_controller.verify_otp = async (req, res) => {
   }
 
 }
+
 user_controller.get_profile = async (req, res) => {
   try {
 
@@ -84,18 +88,67 @@ user_controller.get_profile = async (req, res) => {
       .findById(user_id)
       .select("-password -_id -email -phoneNumber -isVerified")
       .lean()
-    
+
+    profile.profile_pic = get_image_url(profile.profile_pic)
+
     const user_posts = await Post.find({ user_id })
       .sort({ createdAt: -1 })
       .limit(10)
       .lean()
-    res.json({profile , user_posts})
+    user_posts = user_posts.map((post) => {
+      const media_type = post.media.media_type
+      const media_public_id = post.media.url
+      const media_url = "";
+      if (media_type === 'picture') {
+        media_url = get_image_url(media_public_id, 'post')
+      } else if (media_type === 'video') {
+
+      }
+      return {
+        ...post,
+        media: {
+          media_type,
+          url: media_url
+        }
+      }
+    })
+    res.json({ profile, user_posts, success: true })
   } catch (e) {
     console.log(e.message);
-    res.status(500).json({ err: "internal server error" })
+    res.status(500).json({ err: "internal server error", success: false })
 
   }
 
 
 }
+
+user_controller.get_followers = async (req, res) => {
+  try {
+
+    const user_id = req.user_id;
+    const followers = await Follower.find({ followed: user_id })
+      .populate({
+        path: "user",
+        match: { accessabilty: { $ne: "private" } },
+        select: "-password -email -phoneNumber"
+      })
+      .lean();
+
+    followers = followers.map((follower) => {
+
+      return {
+        ...follower,
+        user: {
+          profile_pic: follower?.user?.profile_pic ? get_image_url(follower?.user?.profile_pic) : null
+        }
+      }
+    })
+    res.json({ followers, success: true })
+  } catch (e) {
+    res.status(500).json({ err: "internal server error", success: false })
+
+  }
+
+}
+
 module.exports = user_controller
