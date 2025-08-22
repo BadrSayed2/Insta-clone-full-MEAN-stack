@@ -14,5 +14,26 @@ const getUserPosts = async (req, res, next) => {
     return next(err);
   }
 };
+const deletePost = async (req, res, next) => {
+  try {
+    const postId = req.params.id;
+    const post = await Post.findById(postId);
+    if (!post) {
+      return next(new ApiError("Post not found", 404));
+    }
+    // Check if the post belongs to the user
+    if (post.user_id.toString() !== req.user.id) {
+      return next(
+        new ApiError("You are not authorized to delete this post", 403)
+      );
+    }
+    await post.remove();
+    return res
+      .status(200)
+      .json(new ApiResponse({ message: "Post deleted successfully" }));
+  } catch (err) {
+    return next(err);
+  }
+};
 
-module.exports = { getUserPosts };
+module.exports = { getUserPosts, deletePost };
