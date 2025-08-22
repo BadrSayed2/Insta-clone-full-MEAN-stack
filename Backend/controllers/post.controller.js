@@ -52,11 +52,15 @@ const add_post_handler = async (req, res, next) => {
     const user_id = req?.user?.id;
     const new_post = req?.body || {};
 
-    const video = req.files && req.files["post_video"] ? req.files["post_video"][0] : null;
-    const pic = req.files && req.files["post_pic"] ? req.files["post_pic"][0] : null;
+    const video =
+      req.files && req.files["post_video"] ? req.files["post_video"][0] : null;
+    const pic =
+      req.files && req.files["post_pic"] ? req.files["post_pic"][0] : null;
 
     if (!video && !pic) {
-      return next(new ApiError("You must upload either a video or a picture.", 400));
+      return next(
+        new ApiError("You must upload either a video or a picture.", 400)
+      );
     }
 
     let media_path_arr = ["uploads"]; // local uploads folder
@@ -84,7 +88,9 @@ const add_post_handler = async (req, res, next) => {
 
     await Post.create({ ...new_post });
 
-    return res.status(201).json(new ApiResponse({ message: "Post added successfully" }));
+    return res
+      .status(201)
+      .json(new ApiResponse({ message: "Post added successfully" }));
   } catch (e) {
     return next(e);
   }
@@ -100,8 +106,10 @@ const update_post_handler = async (req, res, next) => {
     const user_id = req?.user?.id;
     const new_post = req?.body || {};
 
-    const video = req.files && req.files["post_video"] ? req.files["post_video"][0] : null;
-    const pic = req.files && req.files["post_pic"] ? req.files["post_pic"][0] : null;
+    const video =
+      req.files && req.files["post_video"] ? req.files["post_video"][0] : null;
+    const pic =
+      req.files && req.files["post_pic"] ? req.files["post_pic"][0] : null;
 
     let media_path_arr = ["uploads"];
     let media_type = "";
@@ -133,7 +141,11 @@ const update_post_handler = async (req, res, next) => {
       if (!delete_result) {
         return next(new ApiError("Could not delete old file", 400));
       }
-      const result = await upload_image(media_path, cloudinary_path, media_type);
+      const result = await upload_image(
+        media_path,
+        cloudinary_path,
+        media_type
+      );
       if (!result) {
         return next(new ApiError("Could not upload your file", 400));
       }
@@ -145,7 +157,9 @@ const update_post_handler = async (req, res, next) => {
     }
     await found_post.save();
 
-    return res.status(200).json(new ApiResponse({ message: "Post updated successfully" }));
+    return res
+      .status(200)
+      .json(new ApiResponse({ message: "Post updated successfully" }));
   } catch (e) {
     return next(e);
   }
