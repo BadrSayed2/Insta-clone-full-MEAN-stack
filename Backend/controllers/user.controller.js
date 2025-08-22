@@ -157,12 +157,12 @@ const get_profile = async (req, res, next) => {
     return next(e);
   }
 };
+//! still need to handle the upload image
 const updateProfile = async (req, res, next) => {
   try {
     const userId = req?.user?.id;
     if (!userId) return next(new ApiError("Unauthorized", 401));
 
-    // ناخد بس الحقول اللي مسموح بتعديلها
     const {
       userName,
       fullName,
@@ -172,8 +172,6 @@ const updateProfile = async (req, res, next) => {
       profile_pic,
       phoneNumber,
     } = req.body;
-
-    // نكوّن object باللي موجود فعلاً (مش undefined)
     const updates = {
       ...(userName && { userName }),
       ...(fullName && { fullName }),
@@ -208,7 +206,7 @@ const get_followers = async (req, res, next) => {
     let followers = await Follower.find({ followed: user_id })
       .populate({
         path: "user",
-        match: { accessabilty: { $ne: "private" } },
+        match: { accessibility: { $ne: "private" } },
         select: "-password -email -phoneNumber",
       })
       .lean();

@@ -1,9 +1,6 @@
 const cloudinary = require("cloudinary").v2;
 const dotenv = require("dotenv");
-/**
-CLOUDINARY_NAME = "dbatj7huc"
-CLOUDINARY_API_KEY = "341945963128522"
-CLOUDINARY_API_SECRET = "Fov-InqaI2bw3MwfvTux584qPcc" */
+
 dotenv.config();
 // Return "https" URLs by setting secure: true
 cloudinary.config({

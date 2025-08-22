@@ -8,8 +8,7 @@ const emailEvent = new EventEmitter();
 
 emailEvent.on("sendConfirmEmail", async ({ email } = {}) => {
   try {
-    const secret =
-      process.env.SECRET_KEY_ACTIVE || process.env.SCRIT_KEY_ACTIVE;
+    const secret = process.env.SECRET_KEY_ACTIVE;
     const tokenActive = jwt.sign({ email }, secret, {
       expiresIn: "1h",
     });
