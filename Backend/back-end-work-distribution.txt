@@ -1,10 +1,10 @@
 ------------------------------Badr------------------------------------
-verify_otp
-add post
-update post
-get profile
+verify_otp //done
+add post //done
+update post //done
+get profile //done
 browsing posts
-get my followers
+get my followers //done
 
 comment a post
 update a comment

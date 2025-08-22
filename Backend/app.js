@@ -36,6 +36,7 @@ if (process.env.NODE_ENV === "development") {
 } else {
   logger.info("Production Mode");
 }
-app.listen(4000, () => {
-  logger.info("Server started on port 4000");
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+  logger.info(`Server started on port ${PORT}`);
 });
