@@ -11,9 +11,11 @@ router.post('/',
         { name: "post_pic", maxCount: 1 },
     ]), post_controller.add_post_handler)
 
+router.post('/comment/:post_it',authenticate,post_controller.comment_post)
 router.put('/:post_id', authenticate,
     upload.fields([
         { name: "post_video", maxCount: 1 },
         { name: "post_pic", maxCount: 1 },
     ]), post_controller.update_post_handler)
+
 module.exports = router

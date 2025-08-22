@@ -6,7 +6,7 @@ get profile //done
 browsing posts
 get my followers //done
 
-comment a post
+comment a post // done
 update a comment
 ------------------------------Adham------------------------------------
 forget_password

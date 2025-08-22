@@ -2,6 +2,8 @@ const path = require('path')
 
 const User = require('../models/post.model')
 const Post = require('../models/post.model')
+const Comment = require('../models/comment.model')
+
 
 const upload_image = require('../utils/upload_image.util')
 const deleteFile = require('../utils/delete_image.util')
@@ -87,11 +89,11 @@ post_controller.update_post_handler = async (req, res) => {
     try {
         const post_id = req?.params?.post_id
         const found_post = await Post.findById(post_id)
-        if(found_post.user_id != user_id){
-            return res.status(401).json({err : "this is not your post" ,success : false})
+        if (found_post.user_id != user_id) {
+            return res.status(401).json({ err: "this is not your post", success: false })
         }
         if (!pic && !video) {
-
+            return res.status(400).json({ err: "you must upload a picture or a video", success: false })
         }
         else if (pic) {
             // console.log(pic);
@@ -130,12 +132,39 @@ post_controller.update_post_handler = async (req, res) => {
         found_post.caption = new_post.caption
         await found_post.save()
 
-        res.json({message : "post updated successfully" , success : true})
+        res.json({ message: "post updated successfully", success: true })
     } catch (e) {
         console.log(e.message);
         res.status(500).json({ err: "server error please try again", success: false })
-  
+
     }
 }
 
+post_controller.comment_post = async (req, res) => {
+    try {
+
+        const user_id = req?.user_id
+        const post_id = req?.params?.post_id
+        const comment = req?.body?.comment
+        if (!post_id || !user_id || !comment) {
+            return res.status(401).json({ err: "you must pass the post id and a comment", success: false })
+        }
+        const post = await Post.findById(post_id).lean()
+        if (post.user_id != user_id) {
+            return res.status(401).json({ err: "this is not your post MF", success: false })
+        }
+
+        await Comment.create({
+            post_id,
+            user_id,
+            content: comment,
+        })
+
+        res.status(201).json({ message: "comment is created successfully", success: true })
+    } catch (e) {
+        console.log(e.message);
+        res.status(500).json({ err: "server error please try again", success: false })
+
+    }
+}
 module.exports = post_controller
