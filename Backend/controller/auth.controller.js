@@ -112,7 +112,9 @@ const confirmEmail = async (req, res, next) => {
     if (!token) {
       return next(new ApiError("Activation token missing in query", 400));
     }
-    const decoded = jwt.verify(token, process.env.SECRET_KEY_ACTIVE);
+    const secret =
+      process.env.SECRET_KEY_ACTIVE || process.env.SCRIT_KEY_ACTIVE;
+    const decoded = jwt.verify(token, secret);
 
     const user = await User.findOneAndUpdate(
       { email: decoded.email },
