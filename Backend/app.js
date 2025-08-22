@@ -3,10 +3,10 @@ dotenv.config({ quiet: true });
 const logger = require("./utils/logger");
 const express = require("express");
 const swaggerUi = require("swagger-ui-express");
-const authRouter = require("./routes/auth.router");
-const userRouter = require("./routes/user.router");
-const postRouter = require("./routes/post.router");
-const followRouter = require("./routes/follow.router");
+const authRouter = require("./routes/auth.routes");
+const userRouter = require("./routes/user.routes");
+const postRouter = require("./routes/post.routes");
+const followRouter = require("./routes/follow.routes");
 const { globalError, handleNotFound } = require("./middlewares/global-error");
 
 const fs = require("fs");

@@ -157,6 +157,50 @@ const get_profile = async (req, res, next) => {
     return next(e);
   }
 };
+const updateProfile = async (req, res, next) => {
+  try {
+    const userId = req?.user?.id;
+    if (!userId) return next(new ApiError("Unauthorized", 401));
+
+    // ناخد بس الحقول اللي مسموح بتعديلها
+    const {
+      userName,
+      fullName,
+      bio,
+      gender,
+      accessability,
+      profile_pic,
+      phoneNumber,
+    } = req.body;
+
+    // نكوّن object باللي موجود فعلاً (مش undefined)
+    const updates = {
+      ...(userName && { userName }),
+      ...(fullName && { fullName }),
+      ...(bio && { bio }),
+      ...(gender && { gender }),
+      ...(accessability && { accessability }),
+      ...(profile_pic && { profile_pic }),
+      ...(phoneNumber && { phoneNumber }),
+    };
+
+    if (Object.keys(updates).length === 0) {
+      return next(new ApiError("No valid fields to update", 400));
+    }
+
+    const user = await User.findByIdAndUpdate(userId, updates, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!user) return next(new ApiError("User not found", 404));
+
+    user.password = undefined;
+    res.status(200).json(new ApiResponse({ user }));
+  } catch (err) {
+    next(err);
+  }
+};
 
 const get_followers = async (req, res, next) => {
   try {
@@ -187,4 +231,5 @@ module.exports = {
   verify_otp,
   get_profile,
   get_followers,
+  updateProfile,
 };
