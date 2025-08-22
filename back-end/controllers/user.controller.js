@@ -7,6 +7,7 @@ const Post = require('../models/post.model')
 const Follower = require('../models/follower.model')
 
 const get_image_url = require('../utils/get_image_url')
+const get_video_url = require('../utils/get_video_url')
 
 const user_controller = {}
 
@@ -102,7 +103,7 @@ user_controller.get_profile = async (req, res) => {
       if (media_type === 'picture') {
         media_url = get_image_url(media_public_id, 'post')
       } else if (media_type === 'video') {
-
+        media_url = get_video_url(media_public_id)
       }
       return {
         ...post,
@@ -137,10 +138,8 @@ user_controller.get_followers = async (req, res) => {
     followers = followers.map((follower) => {
 
       return {
-        ...follower,
-        user: {
+        ...follower.user,
           profile_pic: follower?.user?.profile_pic ? get_image_url(follower?.user?.profile_pic) : null
-        }
       }
     })
     res.json({ followers, success: true })
