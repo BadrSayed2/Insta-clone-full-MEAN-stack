@@ -167,4 +167,29 @@ post_controller.comment_post = async (req, res) => {
 
     }
 }
+
+post_controller.feed_posts = async (req, res) => {
+    try{
+
+    const user_id = req?.user_id
+    const following = await Follower.find({ user: user_id }).select('followed -_id');
+    const followingIds = following.map(f => f.followed);
+
+    const posts = await Post.find({ user_id: { $in: followingIds } })
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .select("-user_id")
+        .populate({
+            path: 'user_id',
+            select: 'userName fullName profile_pic accessabilty',
+        })
+        .lean();
+
+        return res.json({posts , success :true})
+    }catch(e){
+        console.log(e.message);
+        return res.status(500).json({err : "server error", success:false})
+        
+    }
+}
 module.exports = post_controller
