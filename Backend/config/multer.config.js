@@ -42,6 +42,7 @@ const fileFilter = function (req, file, cb) {
         cb(null, true);
     } else {
         cb(null, false); 
+
         req.fileValidationError = "File type not allowed";
     }
 };
