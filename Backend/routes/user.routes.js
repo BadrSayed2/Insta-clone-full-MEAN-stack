@@ -1,14 +1,24 @@
-const express = require('express');
-const user_controller = require('../controllers/user.controller');
-const authenticate = require('../middlewares/authenticate.middleware');
+const express = require("express");
+const {
+  getOtherUserProfile,
+  getUserPosts,
+  verify_otp,
+  get_profile,
+  get_followers,
+  updateProfile,
+} = require("../controllers/user.controller.js");
+const authenticate = require("../middlewares/authenticate.middleware.js");
+
 const router = express.Router();
 
+// Profile routes (from legacy user.routes.js)
+router.get("/", authenticate, get_profile);
+router.get("/followers", authenticate, get_followers);
+router.post("/verify_otp", verify_otp);
 
-// router.get('/' , (req,res)=>{
-//     res.json({message : "Hello"})
-// })
-router.get('/' , authenticate , user_controller.get_profile)
+// Public user info + posts (from previous user.router.js)
+router.get("/:id", getOtherUserProfile);
+router.get("/:id/posts", getUserPosts);
+router.put("/", authenticate, updateProfile);
 
-router.get('/followers' , authenticate , user_controller.get_followers)
-router.post('/verify_otp',user_controller.verify_otp)
-module.exports = router
+module.exports = router;

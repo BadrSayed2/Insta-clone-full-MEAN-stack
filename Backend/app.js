@@ -1,34 +1,42 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const DB = require('./config/db_config');
+const dotenv = require("dotenv");
+dotenv.config({ quiet: true });
+const logger = require("./utils/logger");
+const express = require("express");
+const swaggerUi = require("swagger-ui-express");
+const authRouter = require("./routes/auth.routes");
+const userRouter = require("./routes/user.routes");
+const postRouter = require("./routes/post.routes");
+const followRouter = require("./routes/follow.routes");
+const { globalError, handleNotFound } = require("./middlewares/global-error");
 
-const swaggerUi = require('swagger-ui-express');
-const fs = require('fs');
-const yaml = require('js-yaml');
-const openapiSpec = yaml.load(fs.readFileSync('./openapi.yaml', 'utf8'));
+const fs = require("fs");
+const yaml = require("js-yaml");
+const openapiSpec = yaml.load(fs.readFileSync("./openapi.yaml", "utf8"));
 
-const cookieParser = require('cookie-parser');
-
-const user_router = require('./routes/user.routes')
-const post_router = require('./routes/post.routes')
-
-const app = express()
-
-dotenv.config();
+const app = express();
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }))
-app.use(cookieParser())
+app.use(express.urlencoded({ extended: true }));
+const DB = require("./config/db_config");
 
-DB.connect_to_mongodb()
+DB.connect_to_mongodb();
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapiSpec));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openapiSpec));
 
-app.get('/', (req, res) => {
-    res.send("welcome to insta app")
-})
+app.use("/auth", authRouter);
+app.use("/users", userRouter);
+app.use("/posts", postRouter);
+app.use("/follow", followRouter);
 
-app.use('/user', user_router)
-app.use('/post', post_router)
+app.use(handleNotFound);
 
-app.listen(4000, () => { console.log("welcome to mongo db server"); });
+app.use(globalError);
+if (process.env.NODE_ENV === "development") {
+  logger.debug("Development Mode");
+} else {
+  logger.info("Production Mode");
+}
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+  logger.info(`Server started on port ${PORT}`);
+});

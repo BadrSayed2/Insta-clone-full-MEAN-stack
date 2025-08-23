@@ -1,81 +1,113 @@
+
 const path = require('path')
 
 const User = require('../models/post.model')
 const Post = require('../models/post.model')
-
 const Comment = require('../models/comment.model')
 
 const upload_image = require('../utils/upload_image.util')
 const deleteFile = require('../utils/delete_image.util')
+
 const post_controller = {}
 
+const ApiResponse = require("../utils/api-response");
+const ApiError = require("../utils/api-error");
+
+
+post_controller.getUserPosts = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    const posts = await Post.find({ user_id: userId }).sort({ createdAt: -1 });
+    if (!posts.length) {
+      return next(new ApiError("No posts found for this user", 404));
+    }
+    return res.status(200).json(new ApiResponse({ posts }));
+  } catch (err) {
+    return next(err);
+  }
+};
+
+post_controller.deletePost = async (req, res, next) => {
+  try {
+    const postId = req.params.id;
+    const post = await Post.findById(postId);
+    if (!post) {
+      return next(new ApiError("Post not found", 404));
+    }
+    // Check if the post belongs to the user
+    if (post.user_id.toString() !== req.user.id) {
+      return next(
+        new ApiError("You are not authorized to delete this post", 403)
+      );
+    }
+    await post.remove();
+    return res
+      .status(200)
+      .json(new ApiResponse({ message: "Post deleted successfully" }));
+  } catch (err) {
+    return next(err);
+  }
+};
+
+
 post_controller.add_post_handler = async (req, res) => {
+
     if (req.fileValidationError) {
-        return res.status(400).json({ err: req.fileValidationError, success: false });
+      return next(new ApiError(req.fileValidationError, 400));
     }
 
-    const user_id = req.user_id
-    const new_post = req?.body
-    // console.log(new_post);
+    const user_id = req?.user?.id;
+    const new_post = req?.body || {};
 
-    const video = req.files["post_video"] ? req.files["post_video"][0] : null;
-    const pic = req.files["post_pic"] ? req.files["post_pic"][0] : null;
+    const video =
+      req.files && req.files["post_video"] ? req.files["post_video"][0] : null;
+    const pic =
+      req.files && req.files["post_pic"] ? req.files["post_pic"][0] : null;
 
     if (!video && !pic) {
-        return res.status(400).json({
-            err: "You must upload either a video or a picture."
-            , success: false
-        });
+      return next(
+        new ApiError("You must upload either a video or a picture.", 400)
+      );
     }
 
-    let media_path_arr = ["uploads"]
-    let media_type = ""
-    let cloudinary_path = ""
-    try {
-        if (pic) {
-            console.log(pic);
+    let media_path_arr = ["uploads"]; // local uploads folder
+    let media_type = "";
+    let cloudinary_path = "";
 
-            media_path_arr.push("post_pics")
-            media_path_arr.push(pic.filename)
-            media_type = "picture"
-            cloudinary_path = "post_pics"
-        } else if (video) {
-            console.log(video);
-
-            media_path_arr.push("post_videos")
-            media_path_arr.push(video.filename)
-            media_type = "video"
-            cloudinary_path = "post_videos"
-        }
-
-        const media_path = path.join(...media_path_arr)
-
-        const result = await upload_image(media_path, cloudinary_path, media_type)
-        if (!result) {
-            return res.stauts(400).json({ err: "could not upload your file", success: false })
-        }
-        new_post.media = {
-            url: result.filename,
-            media_type
-        }
-
-        new_post.user_id = user_id
-
-        await Post.create({
-            ...new_post,
-        })
-
-        res.json({ message: "post added successfully", success: true })
-    } catch (e) {
-        console.log(e.message);
-        res.status(500).json({ err: "server error please try again", success: false })
+    if (pic) {
+      media_path_arr.push("post_pics", pic.filename);
+      media_type = "picture";
+      cloudinary_path = "post_pics";
+    } else if (video) {
+      media_path_arr.push("post_videos", video.filename);
+      media_type = "video";
+      cloudinary_path = "post_videos";
     }
 
-}
+    const media_path = path.join(...media_path_arr);
+    const result = await upload_image(media_path, cloudinary_path, media_type);
+    if (!result) {
+      return next(new ApiError("Could not upload your file", 400));
+    }
 
-post_controller.update_post_handler = async (req, res) => {
+    new_post.media = { url: result.filename, media_type };
+    new_post.user_id = user_id;
+
+    await Post.create({ ...new_post });
+
+    return res
+      .status(201)
+      .json(new ApiResponse({ message: "Post added successfully" }));
+  } catch (e) {
+    return next(e);
+  }
+};
+
+// Update Post
+post_controller.update_post_handler = async (req, res, next) => {
+  try {
     if (req.fileValidationError) {
-        return res.status(400).json({ err: req.fileValidationError, success: false });
+      return next(new ApiError(req.fileValidationError, 400));
     }
 
     const user_id = req.user_id

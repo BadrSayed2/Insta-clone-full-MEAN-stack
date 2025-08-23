@@ -1,23 +1,31 @@
 {
   "name": "back-end",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon app.js"
+    "start": "cross-env NODE_ENV=production node app.js",
+    "dev": "cross-env NODE_ENV=development nodemon app.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cloudinary": "^2.7.0",
     "cookie-parser": "^1.4.7",
+    "cross-env": "^10.0.0",
+    "crypto-js": "^4.2.0",
     "dotenv": "^17.2.1",
+    "events": "^3.3.0",
     "express": "^5.1.0",
     "js-yaml": "^4.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.17.1",
     "multer": "^2.0.2",
-    "swagger-ui-express": "^5.0.1"
+    "nodemailer": "^7.0.5",
+    "nodemon": "^3.1.10",
+    "swagger-ui-express": "^5.0.1",
+    "winston": "^3.17.0"
   }
 }
