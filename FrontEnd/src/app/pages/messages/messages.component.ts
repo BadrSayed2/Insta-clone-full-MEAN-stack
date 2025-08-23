@@ -26,9 +26,9 @@ interface Message {
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="max-w-6xl mx-auto py-8 px-4">
+    <div class="w-full h-screen">
       <div
-        class="bg-white dark:bg-gray-900 border border-instagram-border dark:border-gray-800 rounded-lg overflow-hidden h-[600px] flex"
+        class="bg-white dark:bg-gray-900 border border-instagram-border dark:border-gray-800 rounded-lg overflow-hidden h-full flex"
       >
         <!-- Chat List -->
         <div class="w-1/3 border-r border-instagram-border">
