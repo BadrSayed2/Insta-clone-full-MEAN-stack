@@ -10,10 +10,7 @@ const get_image_url = require("../utils/get_image_url");
 const get_video_url = require("../utils/get_video_url");
 
 // Load keys (kept as in legacy controller)
-const OTP_private_key = fs.readFileSync(
-  "./keys/OTP/OTP_private_key.pem",
-  "utf-8"
-);
+
 const OTP_public_key = fs.readFileSync(
   "./keys/OTP/OTP_public_key.pem",
   "utf-8"
@@ -22,16 +19,9 @@ const auth_private_key = fs.readFileSync(
   "./keys/auth/auth_private_key.pem",
   "utf-8"
 );
-const auth_public_key = fs.readFileSync(
-  "./keys/auth/auth_public_key.pem",
-  "utf-8"
-);
+
 const refresh_private_key = fs.readFileSync(
   "./keys/refresh/refresh_private_key.pem",
-  "utf-8"
-);
-const refresh_public_key = fs.readFileSync(
-  "./keys/refresh/refresh_public_key.pem",
   "utf-8"
 );
 
@@ -61,8 +51,6 @@ const getUserPosts = async (req, res, next) => {
   return res.status(200).json(new ApiResponse({ posts: userPosts }));
 };
 
-module.exports = { getOtherUserProfile, getUserPosts };
-
 // Additional handlers migrated from legacy controllers/user.controller.js
 const verify_otp = async (req, res, next) => {
   try {
@@ -73,7 +61,7 @@ const verify_otp = async (req, res, next) => {
 
     const payload = jwt.verify(token, OTP_public_key, { algorithms: "RS256" });
     const code = payload?.code;
-    const user = await User.findOne({ phoneNumber: payload.phoneNumber });
+    const user = await User.findOne({ phoneNumber: payload?.phoneNumber });
     if (!user) {
       return next(new ApiError("you need to login", 401));
     }
@@ -222,6 +210,7 @@ const get_followers = async (req, res, next) => {
     return next(e);
   }
 };
+
 
 module.exports = {
   getOtherUserProfile,

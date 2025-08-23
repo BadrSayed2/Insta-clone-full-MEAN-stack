@@ -41,7 +41,10 @@ const user_schema = new mongoose.Schema(
     },
 
     phoneNumber: String,
-
+    date_of_birth: {
+      type: Date,
+      required : true
+    },
     isVerified: {
       type: Boolean,
       default: false,
