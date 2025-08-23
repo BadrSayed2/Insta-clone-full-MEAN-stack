@@ -2,11 +2,9 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-// File filters
 const vedioTypes = [".mp4", ".mov"];
 const imageTypes = [".jpg", ".jpeg", ".png"];
 
-// Multer Storage Configuration
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         let subFolder = "others";
@@ -43,15 +41,15 @@ const fileFilter = function (req, file, cb) {
     } else if ((file.fieldname === "profile" || file.fieldname === "post_pic") && imageTypes.includes(ext)) {
         cb(null, true);
     } else {
-        // cb(new Error("File type not allowed"), false);
-        cb(null, false); // reject بدون error
+        cb(null, false); 
+
         req.fileValidationError = "File type not allowed";
     }
 };
 
 // File size limits
 const limits = {
-    fileSize: 50 * 1024 * 1024, // max 50MB per file
+    fileSize: 50 * 1024 * 1024,
 };
 
 const upload = multer({
