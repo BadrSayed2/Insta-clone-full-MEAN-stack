@@ -3,10 +3,10 @@ verify_otp //done
 add post //done
 update post //done
 get profile //done
-browsing posts
+browsing posts //done
 get my followers //done
 
-comment a post
+comment a post // done
 update a comment
 ------------------------------Adham------------------------------------
 forget_password
