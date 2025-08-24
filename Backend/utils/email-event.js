@@ -2,14 +2,13 @@ const jwt = require("jsonwebtoken");
 const { EventEmitter } = require("events");
 const { emailTemplate } = require("./templates/EmailTemplate.js");
 const { sendEmail } = require("./nodemailer.utils.js");
-const logger = require("./logger");
+const logger = require("./logger.js");
 const { ResetEmailTemplate } = require("./templates/resetEmailTemplate.js");
 
 const emailEvent = new EventEmitter();
 
 emailEvent.on("sendConfirmEmail", async ({ email, code } = {}) => {
   try {
-
     // Direct verification API link (GET)
     await sendEmail({
       to: email,
@@ -20,7 +19,7 @@ emailEvent.on("sendConfirmEmail", async ({ email, code } = {}) => {
               <div style="font-size: 24px; font-weight: bold; margin: 20px 0; color: #e91e63;">
                 ${code}
               </div>`,
-        securityNote: "This code will expire in 5 minutes."
+        securityNote: "This code will expire in 5 minutes.",
       }),
     });
   } catch (err) {

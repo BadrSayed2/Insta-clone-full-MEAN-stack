@@ -27,10 +27,17 @@ const user_schema = new mongoose.Schema(
       enum: ["private", "public"],
       default: "public",
     },
-    profile_pic: String,
+    profile_pic: {
+      public_id: { type: String, default: null },
+      url: {
+        type: String,
+        default:
+          "https://www.shutterstock.com/image-vector/default-avatar-profile-icon-vector-600nw-1745180411.jpg",
+      },
+    },
 
     bio: String,
-    
+
     gender: {
       type: String,
       enum: ["male", "female"],
@@ -40,7 +47,7 @@ const user_schema = new mongoose.Schema(
     phoneNumber: String,
     date_of_birth: {
       type: Date,
-      required : true
+      required: true,
     },
     isVerified: {
       type: Boolean,

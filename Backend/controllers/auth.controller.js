@@ -1,19 +1,34 @@
-const fs = require('fs')
+const fs = require("fs");
+const path = require("path");
 const bcrypt = require("bcryptjs");
 const CryptoJS = require("crypto-js");
 const jwt = require("jsonwebtoken");
-const { emailEvent } = require("../utils/email.event.utils");
+const { emailEvent } = require("../utils/email-event");
 const ApiError = require("../utils/api-error");
 const ApiResponse = require("../utils/api-response");
 const crypto = require("crypto");
 const logger = require("../utils/logger");
-const generateCode = require("../utils/generate_code.util");
+const generateCode = require("../utils/generate-code");
 
 const User = require("../models/user.model");
-const OTP = require('../models/OTP.model')
+const OTP = require("../models/OTP.model");
 
 const OTP_private_key = fs.readFileSync(
   "./keys/OTP/OTP_private_key.pem",
+  "utf-8"
+);
+const auth_private_key = fs.readFileSync(
+  path.join(__dirname, "../keys/auth/auth_private_key.pem"),
+  "utf-8"
+);
+
+const refresh_private_key = fs.readFileSync(
+  path.join(__dirname, "../keys/refresh/refresh_private_key.pem"),
+  "utf-8"
+);
+
+const OTP_public_key = fs.readFileSync(
+  path.join(__dirname, "../keys/OTP/OTP_public_key.pem"),
   "utf-8"
 );
 
@@ -42,7 +57,10 @@ const signup = async (req, res, next) => {
       return next(new ApiError("This email is already registered", 409));
     }
 
-    const hashPassword = await bcrypt.hash(password, parseInt(process.env.SALT));
+    const hashPassword = await bcrypt.hash(
+      password,
+      parseInt(process.env.SALT)
+    );
 
     const encryptedPhone = CryptoJS.AES.encrypt(
       phoneNumber,
@@ -63,14 +81,14 @@ const signup = async (req, res, next) => {
     //badr edit
 
     const code = generateCode();
-    await OTP.create({ user_id: user._id, code })
+    await OTP.create({ user_id: user._id, code });
     emailEvent.emit("sendConfirmEmail", { email, code });
 
-    const token = jwt.sign({ _id : user._id }, OTP_private_key, {
+    const token = jwt.sign({ _id: user._id }, OTP_private_key, {
       expiresIn: "15m",
       algorithm: "RS256",
     });
-    
+
     const cookieOptions = {
       httpOnly: true,
       secure: true,
@@ -97,28 +115,27 @@ const login = async (req, res, next) => {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
-    
+
     if (!user || !user.isVerified) {
       return next(new ApiError("in-valid login Data", 400));
     }
-    
+
     const match = await bcrypt.compare(password, user.password);
-    
+
     if (!match) {
       return next(new ApiError("in-valid login Data", 400));
     }
 
     //Badr edit
-    
+
     const code = generateCode();
-    await OTP.create({ user_id: user._id, code })
-    
+    await OTP.create({ user_id: user._id, code });
+
     emailEvent.emit("sendConfirmEmail", { email, code });
 
-
-    const token = jwt.sign({ _id : user._id , code }, OTP_private_key, {
+    const token = jwt.sign({ _id: user._id, code }, OTP_private_key, {
       expiresIn: "15m",
-      algorithm : 'RS256'
+      algorithm: "RS256",
     });
     const cookieOptions = {
       httpOnly: true,
@@ -138,7 +155,6 @@ const login = async (req, res, next) => {
     return next(err);
   }
 };
-
 
 const forgetPassword = async (req, res, next) => {
   const email = req.body.email;
@@ -189,5 +205,70 @@ const resetPassword = async (req, res, next) => {
     .status(200)
     .json(new ApiResponse({ message: "Password reset successful" }));
 };
+const verifyOtp = async (req, res, next) => {
+  try {
+    const token = req?.cookies?.["OTP_verification_token"]; // contains user id
+    const code = String(req?.body?.code ?? "").trim();
+    if (!token) {
+      return next(new ApiError("you need to login", 401));
+    }
+    if (!code || code.length !== 8) {
+      return next(new ApiError("Invalid or missing OTP code", 400));
+    }
 
-module.exports = { signup, login, forgetPassword, resetPassword };
+    const payload = jwt.verify(token, OTP_public_key, {
+      algorithms: ["RS256"],
+    });
+
+    const user = await User.findById(payload._id);
+    if (!user) {
+      return next(new ApiError("you need to login", 401));
+    }
+
+    const otpDoc = await OTP.findOne({ user_id: user._id, code });
+    if (otpDoc) {
+      if (!user?.isVerified) {
+        user.isVerified = true;
+        await user.save();
+      }
+
+      // Remove used OTPs (cleanup)
+      await OTP.deleteMany({ user_id: user._id });
+
+      const refresh_token = jwt.sign(
+        { user_id: user._id },
+        refresh_private_key,
+        { algorithm: "RS256", expiresIn: "10d" }
+      );
+
+      const access_token = jwt.sign({ user_id: user._id }, auth_private_key, {
+        algorithm: "RS256",
+        expiresIn: "15m",
+      });
+
+      const cookieOptions = {
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict",
+        maxAge: 24 * 60 * 60 * 1000,
+      };
+
+      res.cookie("authentication", access_token, cookieOptions);
+      res.cookie("refresh", refresh_token, {
+        ...cookieOptions,
+        maxAge: 10 * 24 * 60 * 60 * 1000,
+      });
+
+      res.clearCookie("OTP_verification_token");
+      return res
+        .status(200)
+        .json(new ApiResponse({ message: "you are verified" }));
+    } else {
+      return next(new ApiError("Invalid or expired OTP code", 400));
+    }
+  } catch (e) {
+    return next(e);
+  }
+};
+
+module.exports = { signup, login, forgetPassword, resetPassword, verifyOtp };
