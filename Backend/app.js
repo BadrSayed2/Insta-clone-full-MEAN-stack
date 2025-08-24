@@ -3,12 +3,15 @@ dotenv.config({ quiet: true });
 const logger = require("./utils/logger");
 const express = require("express");
 const swaggerUi = require("swagger-ui-express");
+
 const authRouter = require("./routes/auth.routes");
 const userRouter = require("./routes/user.routes");
 const postRouter = require("./routes/post.routes");
 const followRouter = require("./routes/follow.routes");
+
 const { globalError, handleNotFound } = require("./middlewares/global-error");
 
+const cookieParser = require('cookie-parser')
 const fs = require("fs");
 const yaml = require("js-yaml");
 const openapiSpec = yaml.load(fs.readFileSync("./openapi.yaml", "utf8"));
@@ -17,7 +20,9 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser())
 const DB = require("./config/db_config");
+
 
 DB.connect_to_mongodb();
 

@@ -24,16 +24,13 @@ const user_schema = new mongoose.Schema(
     },
     accessability: {
       type: String,
-      enum: ["private", "public", "followers"],
+      enum: ["private", "public"],
       default: "public",
     },
     profile_pic: String,
 
     bio: String,
-    confirmEmail: {
-      type: Boolean,
-      default: false,
-    },
+    
     gender: {
       type: String,
       enum: ["male", "female"],

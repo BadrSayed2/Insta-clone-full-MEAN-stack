@@ -4,6 +4,7 @@ const path = require('path')
 const User = require('../models/post.model')
 const Post = require('../models/post.model')
 const Comment = require('../models/comment.model')
+const Follower = require("../models/follower.model")
 
 const upload_image = require('../utils/upload_image.util')
 const deleteFile = require('../utils/delete_image.util')
@@ -12,6 +13,8 @@ const post_controller = {}
 
 const ApiResponse = require("../utils/api-response");
 const ApiError = require("../utils/api-error");
+const get_Picture_Url = require('../utils/get_image_url')
+const get_video_url = require('../utils/get_video_url')
 
 
 post_controller.getUserPosts = async (req, res, next) => {
@@ -50,7 +53,7 @@ post_controller.deletePost = async (req, res, next) => {
 };
 
 
-post_controller.add_post_handler = async (req, res) => {
+post_controller.add_post_handler = async (req, res,next) => {
   try {
     if (req.fileValidationError) {
       return next(new ApiError(req.fileValidationError, 400));
@@ -63,7 +66,8 @@ post_controller.add_post_handler = async (req, res) => {
       req.files && req.files["post_video"] ? req.files["post_video"][0] : null;
     const pic =
       req.files && req.files["post_pic"] ? req.files["post_pic"][0] : null;
-
+    
+    
     if (!video && !pic) {
       return next(
         new ApiError("You must upload either a video or a picture.", 400)
@@ -89,10 +93,12 @@ post_controller.add_post_handler = async (req, res) => {
     if (!result) {
       return next(new ApiError("Could not upload your file", 400));
     }
-
-    new_post.media = { url: result.filename, media_type };
+    
+    new_post.media = { url: result, media_type };
     new_post.user_id = user_id;
-
+    
+    console.log(new_post);
+    
     await Post.create({ ...new_post });
 
     return res
@@ -182,7 +188,7 @@ post_controller.comment_post = async (req, res) => {
     if (!post_id || !user_id || !comment) {
       return res.status(401).json({ err: "you must pass the post id and a comment", success: false })
     }
-    const post = await Post.findById(post_id).lean()
+    const post = await Post.findById(post_id)
     if (post.user_id != user_id) {
       return res.status(401).json({ err: "this is not your post MF", success: false })
     }
@@ -192,7 +198,9 @@ post_controller.comment_post = async (req, res) => {
       user_id,
       content: comment,
     })
-
+    
+    post.commentsNumber++;
+    post.save();
     res.status(201).json({ message: "comment is created successfully", success: true })
   } catch (e) {
     console.log(e.message);
@@ -205,19 +213,30 @@ post_controller.feed_posts = async (req, res) => {
   try {
 
     const user_id = req?.user_id
+    const offset = req?.query?.limit || 0;
     const following = await Follower.find({ user: user_id }).select('followed -_id');
     const followingIds = following.map(f => f.followed);
 
-    const posts = await Post.find({ user_id: { $in: followingIds } })
+    const db_posts = await Post.find({ user_id: { $in: followingIds } })
       .sort({ createdAt: -1 })
-      .limit(limit)
+      .skip(offset * 15)
+      .limit(15)
       .select("-user_id")
       .populate({
         path: 'user_id',
         select: 'userName fullName profile_pic accessabilty',
       })
       .lean();
+    const posts = db_posts.map( (post)=>{
+      if(post.media.media_type =='picture'){
+        post.media.url = get_Picture_Url(post?.media?.url)
+      } else if(post.media.media_type =='video'){
+        post.media.url = get_video_url(post?.media?.url)
+      } else{
 
+      }
+      return post
+    })
     return res.json({ posts, success: true })
   } catch (e) {
     console.log(e.message);

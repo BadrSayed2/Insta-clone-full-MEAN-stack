@@ -42,7 +42,7 @@ const signup = async (req, res, next) => {
       return next(new ApiError("This email is already registered", 409));
     }
 
-    const hashPassword = await bcrypt.hash(password);
+    const hashPassword = await bcrypt.hash(password, parseInt(process.env.SALT));
 
     const encryptedPhone = CryptoJS.AES.encrypt(
       phoneNumber,
@@ -59,13 +59,18 @@ const signup = async (req, res, next) => {
       bio,
       date_of_birth: DOB,
     });
+
+    //badr edit
+
     const code = generateCode();
-    await OTP.create({user_id : user._id , code})
+    await OTP.create({ user_id: user._id, code })
     emailEvent.emit("sendConfirmEmail", { email, code });
 
-    const token = jwt.sign({ phoneNumber, code }, OTP_private_key, {
-      expiresIn: "5m",
+    const token = jwt.sign({ _id : user._id }, OTP_private_key, {
+      expiresIn: "15m",
+      algorithm: "RS256",
     });
+    
     const cookieOptions = {
       httpOnly: true,
       secure: true,
@@ -92,20 +97,28 @@ const login = async (req, res, next) => {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
+    
     if (!user || !user.isVerified) {
       return next(new ApiError("in-valid login Data", 400));
     }
+    
     const match = await bcrypt.compare(password, user.password);
+    
     if (!match) {
       return next(new ApiError("in-valid login Data", 400));
     }
 
+    //Badr edit
+    
     const code = generateCode();
-    await OTP.create({user_id : user._id , code})
+    await OTP.create({ user_id: user._id, code })
+    
     emailEvent.emit("sendConfirmEmail", { email, code });
 
-    const token = jwt.sign({ phoneNumber, code }, OTP_private_key, {
-      expiresIn: "5m",
+
+    const token = jwt.sign({ _id : user._id , code }, OTP_private_key, {
+      expiresIn: "15m",
+      algorithm : 'RS256'
     });
     const cookieOptions = {
       httpOnly: true,
@@ -177,4 +190,4 @@ const resetPassword = async (req, res, next) => {
     .json(new ApiResponse({ message: "Password reset successful" }));
 };
 
-module.exports = { signup, login,  forgetPassword, resetPassword };
+module.exports = { signup, login, forgetPassword, resetPassword };

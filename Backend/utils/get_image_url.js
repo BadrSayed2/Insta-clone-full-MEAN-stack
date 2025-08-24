@@ -25,6 +25,6 @@ function get_Picture_Url(publicId, type = 'profile') {
     
 }
 
-console.log(get_Picture_Url("insta/post_pics/1755713990534-907785721"));
+// console.log(get_Picture_Url("insta/post_pics/1755713990534-907785721"));
 
 module.exports = get_Picture_Url

@@ -5,6 +5,15 @@ const upload = require("../config/multer.config.js");
 
 const postRouter = express.Router();
 
+postRouter.post(
+  "/",
+  authenticate,
+  upload.fields([
+    { name: "post_video", maxCount: 1 },
+    { name: "post_pic", maxCount: 1 },
+  ]),
+  post_controller.add_post_handler
+);
 
 postRouter.post('/comment/:post_id', authenticate, post_controller.comment_post)
 
@@ -17,26 +26,6 @@ postRouter.put('/:post_id', authenticate,
     ]), post_controller.update_post_handler)
 
 // Create a post with optional image/video upload
-postRouter.post(
-  "/",
-  authenticate,
-  upload.fields([
-    { name: "post_video", maxCount: 1 },
-    { name: "post_pic", maxCount: 1 },
-  ]),
-  post_controller.add_post_handler
-);
-
-// Update a post's caption/media
-postRouter.put(
-  "/:post_id",
-  authenticate,
-  upload.fields([
-    { name: "post_video", maxCount: 1 },
-    { name: "post_pic", maxCount: 1 },
-  ]),
-  post_controller.update_post_handler
-);
 
 // Get posts for a specific user: /posts/user/:id
 postRouter.get("/user/:id", post_controller.getUserPosts);

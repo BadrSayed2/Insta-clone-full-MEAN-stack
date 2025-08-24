@@ -1,11 +1,15 @@
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
+const CryptoJS = require("crypto-js");
+
 const User = require("../models/user.model");
 const OTP = require("../models/OTP.model");
 const Post = require("../models/post.model");
 const Follower = require("../models/follower.model");
+
 const ApiResponse = require("../utils/api-response");
 const ApiError = require("../utils/api-error");
+
 const get_image_url = require("../utils/get_image_url");
 const get_video_url = require("../utils/get_video_url");
 
@@ -28,40 +32,46 @@ const refresh_private_key = fs.readFileSync(
 const getOtherUserProfile = async (req, res, next) => {
   try {
     const userid = req.params.id;
-    const user = await User.findOne({ _id: userid }).select(
-      "userName fullName bio -_id"
+    const user = await User.findOne({ _id: userid  , accessability : 'public'}).select(
+      "-password -_id -email -phoneNumber -isVerified "
     );
     if (!user) {
       return next(new ApiError("User not found", 404));
     }
-    return res.status(200).json(new ApiResponse({ user }));
+    return res.status(200).json(ApiResponse({ data : user  }));
   } catch (err) {
     return next(err);
   }
 };
+
 const getUserPosts = async (req, res, next) => {
   const userId = req.params.id;
   const userPosts = await Post.find({
     user_id: userId,
     privacy: "public",
   }).sort({ createdAt: -1 });
+
   if (!userPosts || userPosts.length === 0) {
     return res.status(404).json(new ApiError("No posts found", 404));
   }
-  return res.status(200).json(new ApiResponse({ posts: userPosts }));
+  return res.status(200).json(new ApiResponse({ data:{ posts : userPosts} }));
 };
 
 // Additional handlers migrated from legacy controllers/user.controller.js
 const verify_otp = async (req, res, next) => {
   try {
     const token = req?.cookies?.["OTP_verification_token"]; // fixed missing var
+    
+    const code = req?.body.code;
     if (!token) {
       return next(new ApiError("you need to login", 401));
     }
-
+    
     const payload = jwt.verify(token, OTP_public_key, { algorithms: "RS256" });
-    const code = payload?.code;
-    const user = await User.findOne({ phoneNumber: payload?.phoneNumber });
+    
+    const user = await User.findOne({_id : payload._id });
+    console.log(user);
+        
     if (!user) {
       return next(new ApiError("you need to login", 401));
     }
@@ -89,7 +99,7 @@ const verify_otp = async (req, res, next) => {
         httpOnly: true,
         secure: true,
         sameSite: "Strict",
-        maxAge: 15 * 60 * 1000,
+        maxAge:  24 * 60 * 60 * 1000,
       };
 
       res.cookie("authentication", access_token, cookieOptions);
@@ -112,11 +122,13 @@ const verify_otp = async (req, res, next) => {
 
 const get_profile = async (req, res, next) => {
   try {
-    const user_id = req?.user?.id;
+    const user_id = req?.user_id;
+    
     let profile = await User.findById(user_id)
-      .select("-password -_id -email -phoneNumber -isVerified")
-      .lean();
-
+    .select("-password -_id -email -phoneNumber -isVerified")
+    .lean();
+    
+    
     if (!profile) return next(new ApiError("User not found", 404));
     profile.profile_pic = profile?.profile_pic
       ? get_image_url(profile.profile_pic)
@@ -126,6 +138,7 @@ const get_profile = async (req, res, next) => {
       .sort({ createdAt: -1 })
       .limit(10)
       .lean();
+    
     user_posts = user_posts.map((post) => {
       const media_type = post.media.media_type;
       const media_public_id = post.media.url;
@@ -140,7 +153,9 @@ const get_profile = async (req, res, next) => {
         media: { media_type, url: media_url },
       };
     });
-    return res.status(200).json(new ApiResponse({ profile, user_posts }));
+    // console.log(profile , user_posts);
+    
+    return res.status(200).json(new ApiResponse({data : {profile, user_posts }}));
   } catch (e) {
     return next(e);
   }
@@ -160,6 +175,7 @@ const updateProfile = async (req, res, next) => {
       profile_pic,
       phoneNumber,
     } = req.body;
+
     const updates = {
       ...(userName && { userName }),
       ...(fullName && { fullName }),
@@ -205,7 +221,7 @@ const get_followers = async (req, res, next) => {
         ? get_image_url(follower?.user?.profile_pic)
         : null,
     }));
-    return res.status(200).json(new ApiResponse({ followers }));
+    return res.status(200).json(new ApiResponse({ data : followers }));
   } catch (e) {
     return next(e);
   }

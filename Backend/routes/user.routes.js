@@ -18,7 +18,9 @@ router.post("/verify_otp", verify_otp);
 
 // Public user info + posts (from previous user.router.js)
 router.get("/:id", getOtherUserProfile);
+
 router.get("/:id/posts", getUserPosts);
+
 router.put("/", authenticate, updateProfile);
 
 module.exports = router;
