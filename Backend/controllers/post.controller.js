@@ -4,15 +4,17 @@ const Post = require("../models/post.model");
 const Comment = require("../models/comment.model");
 const Follower = require("../models/follower.model");
 
-const uploadImage = require("../utils/upload-image");
-const deleteImage = require("../utils/delete-image");
+const {
+  uploadAsset,
+  deleteAsset,
+  getImageUrl,
+  getVideoUrl,
+} = require("../utils/media");
 
 const postController = {};
 
 const ApiResponse = require("../utils/api-response");
 const ApiError = require("../utils/api-error");
-const getPictureUrl = require("../utils/get-image-url");
-const getVideoUrl = require("../utils/get-video-url");
 
 postController.getUserPosts = async (req, res, next) => {
   try {
@@ -84,7 +86,7 @@ postController.addPostHandler = async (req, res, next) => {
     }
 
     const mediaPath = path.join(...mediaPathArr);
-    const result = await uploadImage(mediaPath, cloudinaryPath, mediaType);
+    const result = await uploadAsset(mediaPath, cloudinaryPath, mediaType);
     if (!result) {
       return next(new ApiError("Could not upload your file", 400));
     }
@@ -150,13 +152,13 @@ postController.updatePostHandler = async (req, res, next) => {
     if (pic || video) {
       const mediaPath = path.join(...mediaPathArr);
 
-      const deleteResult = await deleteImage(foundPost.media.url);
+      const deleteResult = await deleteAsset(foundPost.media.url, mediaType);
       if (!deleteResult) {
         return res
           .status(400)
           .json({ err: "could not upload your file", success: false });
       }
-      const result = await uploadImage(mediaPath, cloudinaryPath, mediaType);
+      const result = await uploadAsset(mediaPath, cloudinaryPath, mediaType);
 
       if (!result) {
         return res
@@ -238,7 +240,7 @@ postController.feedPosts = async (req, res) => {
       .lean();
     const posts = db_posts.map((post) => {
       if (post.media.media_type == "picture") {
-        post.media.url = getPictureUrl(post?.media?.url);
+        post.media.url = getImageUrl(post?.media?.url);
       } else if (post.media.media_type == "video") {
         post.media.url = getVideoUrl(post?.media?.url);
       } else {

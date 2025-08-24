@@ -11,10 +11,12 @@ const Follower = require("../models/follower.model");
 const ApiResponse = require("../utils/api-response");
 const ApiError = require("../utils/api-error");
 
-const getPictureUrl = require("../utils/get-image-url");
-const getVideoUrl = require("../utils/get-video-url");
-const uploadImage = require("../utils/upload-image");
-const deleteImage = require("../utils/delete-image");
+const {
+  getImageUrl,
+  getVideoUrl,
+  uploadAsset,
+  deleteAsset,
+} = require("../utils/media");
 // Load keys (kept as in legacy controller)
 
 const getOtherUserProfile = async (req, res, next) => {
@@ -67,7 +69,7 @@ const getProfile = async (req, res, next) => {
       const mediaPublicId = post.media.url;
       let mediaUrl = "";
       if (mediaType === "picture") {
-        mediaUrl = getPictureUrl(mediaPublicId, "post");
+        mediaUrl = getImageUrl(mediaPublicId, "post");
       } else if (mediaType === "video") {
         mediaUrl = getVideoUrl(mediaPublicId);
       }
@@ -111,7 +113,7 @@ const updateProfile = async (req, res, next) => {
     if (req.file && req.file.fieldname === "profile") {
       const localPath = req.file.path;
       // Upload to Cloudinary under 'profiles' folder
-      const newPublicId = await uploadImage(localPath, "profiles");
+      const newPublicId = await uploadAsset(localPath, "profiles");
       // Remove local temp file
       try {
         if (localPath && fs.existsSync(localPath)) fs.unlinkSync(localPath);
@@ -125,12 +127,12 @@ const updateProfile = async (req, res, next) => {
       if (!existing) return next(new ApiError("User not found", 404));
       if (existing.profile_pic?.public_id) {
         try {
-          await deleteImage(existing.profile_pic.public_id);
+          await deleteAsset(existing.profile_pic.public_id);
         } catch {}
       }
       updates.profile_pic = {
         public_id: newPublicId,
-        url: get_image_url(newPublicId, "profile"),
+        url: getImageUrl(newPublicId, "profile"),
       };
     }
 

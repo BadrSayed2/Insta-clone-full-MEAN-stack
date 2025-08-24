@@ -7,7 +7,7 @@ const {
   updateProfile,
 } = require("../controllers/user.controller.js");
 const upload = require("../config/multer.config.js");
-const authenticate = require("../middlewares/authenticate.middleware.js");
+const authenticate = require("../middlewares/auth-middleware.js");
 const router = express.Router();
 
 // Profile routes (from legacy user.routes.js)
