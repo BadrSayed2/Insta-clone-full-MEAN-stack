@@ -11,17 +11,17 @@ const Follower = require("../models/follower.model");
 const ApiResponse = require("../utils/api-response");
 const ApiError = require("../utils/api-error");
 
-const get_image_url = require("../utils/get-image-url");
-const get_video_url = require("../utils/get_video_url");
+const getPictureUrl = require("../utils/get-image-url");
+const getVideoUrl = require("../utils/get-video-url");
 const uploadImage = require("../utils/upload-image");
 const deleteImage = require("../utils/delete-image");
 // Load keys (kept as in legacy controller)
 
 const getOtherUserProfile = async (req, res, next) => {
   try {
-    const userid = req.params.id;
+    const userId = req.params.id;
     const user = await User.findOne({
-      _id: userid,
+      _id: userId,
       accessability: "public",
     }).select("-password -_id -email -phoneNumber -isVerified ");
     if (!user) {
@@ -46,41 +46,41 @@ const getUserPosts = async (req, res, next) => {
   return res.status(200).json(new ApiResponse({ data: { posts: userPosts } }));
 };
 
-const get_profile = async (req, res, next) => {
+const getProfile = async (req, res, next) => {
   try {
-    const user_id = req?.user_id;
+    const userId = req?.user_id;
 
-    let profile = await User.findById(user_id)
+    let profile = await User.findById(userId)
       .select("-password -_id -email -phoneNumber -isVerified")
       .lean();
 
     if (!profile) return next(new ApiError("User not found", 404));
     profile.profile_pic = profile?.profile_pic?.url || null;
 
-    let user_posts = await Post.find({ user_id })
+    let userPosts = await Post.find({ user_id: userId })
       .sort({ createdAt: -1 })
       .limit(10)
       .lean();
 
-    user_posts = user_posts.map((post) => {
-      const media_type = post.media.media_type;
-      const media_public_id = post.media.url;
-      let media_url = "";
-      if (media_type === "picture") {
-        media_url = get_image_url(media_public_id, "post");
-      } else if (media_type === "video") {
-        media_url = get_video_url(media_public_id);
+    userPosts = userPosts.map((post) => {
+      const mediaType = post.media.media_type;
+      const mediaPublicId = post.media.url;
+      let mediaUrl = "";
+      if (mediaType === "picture") {
+        mediaUrl = getPictureUrl(mediaPublicId, "post");
+      } else if (mediaType === "video") {
+        mediaUrl = getVideoUrl(mediaPublicId);
       }
       return {
         ...post,
-        media: { media_type, url: media_url },
+        media: { media_type: mediaType, url: mediaUrl },
       };
     });
     // console.log(profile , user_posts);
 
     return res
       .status(200)
-      .json(new ApiResponse({ data: { profile, user_posts } }));
+      .json(new ApiResponse({ data: { profile, user_posts: userPosts } }));
   } catch (e) {
     return next(e);
   }
@@ -155,10 +155,10 @@ const updateProfile = async (req, res, next) => {
   }
 };
 
-const get_followers = async (req, res, next) => {
+const getFollowers = async (req, res, next) => {
   try {
-    const user_id = req?.user?.id;
-    let followers = await Follower.find({ followed: user_id })
+    const userId = req?.user?.id;
+    let followers = await Follower.find({ followed: userId })
       .populate({
         path: "user",
         match: { accessibility: { $ne: "private" } },
@@ -179,7 +179,7 @@ const get_followers = async (req, res, next) => {
 module.exports = {
   getOtherUserProfile,
   getUserPosts,
-  get_profile,
-  get_followers,
+  getProfile,
+  getFollowers,
   updateProfile,
 };

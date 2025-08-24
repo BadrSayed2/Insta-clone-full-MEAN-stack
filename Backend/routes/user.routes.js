@@ -2,8 +2,8 @@ const express = require("express");
 const {
   getOtherUserProfile,
   getUserPosts,
-  get_profile,
-  get_followers,
+  getProfile,
+  getFollowers,
   updateProfile,
 } = require("../controllers/user.controller.js");
 const upload = require("../config/multer.config.js");
@@ -11,8 +11,8 @@ const authenticate = require("../middlewares/authenticate.middleware.js");
 const router = express.Router();
 
 // Profile routes (from legacy user.routes.js)
-router.get("/", authenticate, get_profile);
-router.get("/followers", authenticate, get_followers);
+router.get("/", authenticate, getProfile);
+router.get("/followers", authenticate, getFollowers);
 router.get("/:id", getOtherUserProfile);
 
 // Public user info + posts (from previous user.router.js)

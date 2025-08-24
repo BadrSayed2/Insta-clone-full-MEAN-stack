@@ -1,21 +1,20 @@
 const path = require("path");
 
-const User = require("../models/post.model");
 const Post = require("../models/post.model");
 const Comment = require("../models/comment.model");
 const Follower = require("../models/follower.model");
 
-const upload_image = require("../utils/upload-image");
-const deleteFile = require("../utils/delete-image");
+const uploadImage = require("../utils/upload-image");
+const deleteImage = require("../utils/delete-image");
 
-const post_controller = {};
+const postController = {};
 
 const ApiResponse = require("../utils/api-response");
 const ApiError = require("../utils/api-error");
-const get_Picture_Url = require("../utils/get-image-url");
-const get_video_url = require("../utils/get_video_url");
+const getPictureUrl = require("../utils/get-image-url");
+const getVideoUrl = require("../utils/get-video-url");
 
-post_controller.getUserPosts = async (req, res, next) => {
+postController.getUserPosts = async (req, res, next) => {
   try {
     const userId = req.params.id;
     const posts = await Post.find({ user_id: userId }).sort({ createdAt: -1 });
@@ -28,7 +27,7 @@ post_controller.getUserPosts = async (req, res, next) => {
   }
 };
 
-post_controller.deletePost = async (req, res, next) => {
+postController.deletePost = async (req, res, next) => {
   try {
     const postId = req.params.id;
     const post = await Post.findById(postId);
@@ -50,14 +49,14 @@ post_controller.deletePost = async (req, res, next) => {
   }
 };
 
-post_controller.add_post_handler = async (req, res, next) => {
+postController.addPostHandler = async (req, res, next) => {
   try {
     if (req.fileValidationError) {
       return next(new ApiError(req.fileValidationError, 400));
     }
 
-    const user_id = req?.user?.id;
-    const new_post = req?.body || {};
+    const userId = req?.user?.id;
+    const newPost = req?.body || {};
 
     const video =
       req.files && req.files["post_video"] ? req.files["post_video"][0] : null;
@@ -70,32 +69,32 @@ post_controller.add_post_handler = async (req, res, next) => {
       );
     }
 
-    let media_path_arr = ["uploads"]; // local uploads folder
-    let media_type = "";
-    let cloudinary_path = "";
+    let mediaPathArr = ["uploads"]; // local uploads folder
+    let mediaType = "";
+    let cloudinaryPath = "";
 
     if (pic) {
-      media_path_arr.push("post_pics", pic.filename);
-      media_type = "picture";
-      cloudinary_path = "post_pics";
+      mediaPathArr.push("post_pics", pic.filename);
+      mediaType = "picture";
+      cloudinaryPath = "post_pics";
     } else if (video) {
-      media_path_arr.push("post_videos", video.filename);
-      media_type = "video";
-      cloudinary_path = "post_videos";
+      mediaPathArr.push("post_videos", video.filename);
+      mediaType = "video";
+      cloudinaryPath = "post_videos";
     }
 
-    const media_path = path.join(...media_path_arr);
-    const result = await upload_image(media_path, cloudinary_path, media_type);
+    const mediaPath = path.join(...mediaPathArr);
+    const result = await uploadImage(mediaPath, cloudinaryPath, mediaType);
     if (!result) {
       return next(new ApiError("Could not upload your file", 400));
     }
 
-    new_post.media = { url: result, media_type };
-    new_post.user_id = user_id;
+    newPost.media = { url: result, media_type: mediaType };
+    newPost.user_id = userId;
 
-    console.log(new_post);
+    console.log(newPost);
 
-    await Post.create({ ...new_post });
+    await Post.create({ ...newPost });
 
     return res
       .status(201)
@@ -106,24 +105,24 @@ post_controller.add_post_handler = async (req, res, next) => {
 };
 
 // Update Post
-post_controller.update_post_handler = async (req, res, next) => {
+postController.updatePostHandler = async (req, res, next) => {
   if (req.fileValidationError) {
     return next(new ApiError(req.fileValidationError, 400));
   }
 
-  const user_id = req.user_id;
-  const new_post = req?.body;
+  const userId = req.user_id;
+  const newPost = req?.body;
 
   const video = req.files["post_video"] ? req.files["post_video"][0] : null;
   const pic = req.files["post_pic"] ? req.files["post_pic"][0] : null;
-  let media_path_arr = ["uploads"];
-  let media_type = "";
-  let cloudinary_path = "";
+  let mediaPathArr = ["uploads"];
+  let mediaType = "";
+  let cloudinaryPath = "";
   try {
-    const post_id = req?.params?.post_id;
-    const found_post = await Post.findById(post_id);
+    const postId = req?.params?.post_id;
+    const foundPost = await Post.findById(postId);
 
-    if (found_post.user_id != user_id) {
+    if (foundPost.user_id != userId) {
       return res
         .status(401)
         .json({ err: "this is not your post", success: false });
@@ -135,46 +134,42 @@ post_controller.update_post_handler = async (req, res, next) => {
     } else if (pic) {
       // console.log(pic);
 
-      media_path_arr.push("post_pics");
-      media_path_arr.push(pic.filename);
-      media_type = "picture";
-      cloudinary_path = "post_pics";
+      mediaPathArr.push("post_pics");
+      mediaPathArr.push(pic.filename);
+      mediaType = "picture";
+      cloudinaryPath = "post_pics";
     } else if (video) {
       console.log(video);
 
-      media_path_arr.push("post_videos");
-      media_path_arr.push(video.filename);
-      media_type = "video";
-      cloudinary_path = "post_videos";
+      mediaPathArr.push("post_videos");
+      mediaPathArr.push(video.filename);
+      mediaType = "video";
+      cloudinaryPath = "post_videos";
     }
 
     if (pic || video) {
-      const media_path = path.join(...media_path_arr);
+      const mediaPath = path.join(...mediaPathArr);
 
-      const delete_result = await deleteFile(found_post.media.url);
-      if (!delete_result) {
+      const deleteResult = await deleteImage(foundPost.media.url);
+      if (!deleteResult) {
         return res
-          .stauts(400)
+          .status(400)
           .json({ err: "could not upload your file", success: false });
       }
-      const result = await upload_image(
-        media_path,
-        cloudinary_path,
-        media_type
-      );
+      const result = await uploadImage(mediaPath, cloudinaryPath, mediaType);
 
       if (!result) {
         return res
-          .stauts(400)
+          .status(400)
           .json({ err: "could not upload your file", success: false });
       }
-      found_post.media = {
-        url: result.filename,
-        media_type,
+      foundPost.media = {
+        url: result,
+        media_type: mediaType,
       };
     }
-    found_post.caption = new_post.caption;
-    await found_post.save();
+    foundPost.caption = newPost.caption;
+    await foundPost.save();
 
     res.json({ message: "post updated successfully", success: true });
   } catch (e) {
@@ -185,27 +180,27 @@ post_controller.update_post_handler = async (req, res, next) => {
   }
 };
 
-post_controller.comment_post = async (req, res) => {
+postController.commentPost = async (req, res) => {
   try {
-    const user_id = req?.user_id;
-    const post_id = req?.params?.post_id;
+    const userId = req?.user_id;
+    const postId = req?.params?.post_id;
     const comment = req?.body?.comment;
-    if (!post_id || !user_id || !comment) {
+    if (!postId || !userId || !comment) {
       return res.status(401).json({
         err: "you must pass the post id and a comment",
         success: false,
       });
     }
-    const post = await Post.findById(post_id);
-    if (post.user_id != user_id) {
+    const post = await Post.findById(postId);
+    if (post.user_id != userId) {
       return res
         .status(401)
         .json({ err: "this is not your post MF", success: false });
     }
 
     await Comment.create({
-      post_id,
-      user_id,
+      post_id: postId,
+      user_id: userId,
       content: comment,
     });
 
@@ -222,11 +217,11 @@ post_controller.comment_post = async (req, res) => {
   }
 };
 
-post_controller.feed_posts = async (req, res) => {
+postController.feedPosts = async (req, res) => {
   try {
-    const user_id = req?.user_id;
+    const userId = req?.user_id;
     const offset = req?.query?.limit || 0;
-    const following = await Follower.find({ user: user_id }).select(
+    const following = await Follower.find({ user: userId }).select(
       "followed -_id"
     );
     const followingIds = following.map((f) => f.followed);
@@ -243,9 +238,9 @@ post_controller.feed_posts = async (req, res) => {
       .lean();
     const posts = db_posts.map((post) => {
       if (post.media.media_type == "picture") {
-        post.media.url = get_Picture_Url(post?.media?.url);
+        post.media.url = getPictureUrl(post?.media?.url);
       } else if (post.media.media_type == "video") {
-        post.media.url = get_video_url(post?.media?.url);
+        post.media.url = getVideoUrl(post?.media?.url);
       } else {
       }
       return post;
@@ -257,4 +252,4 @@ post_controller.feed_posts = async (req, res) => {
   }
 };
 
-module.exports = post_controller;
+module.exports = postController;

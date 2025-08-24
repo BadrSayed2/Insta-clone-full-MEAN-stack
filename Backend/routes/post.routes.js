@@ -1,5 +1,5 @@
 const express = require("express");
-const post_controller = require("../controllers/post.controller.js");
+const postController = require("../controllers/post.controller.js");
 const authenticate = require("../middlewares/authenticate.middleware.js");
 const upload = require("../config/multer.config.js");
 
@@ -12,25 +12,29 @@ postRouter.post(
     { name: "post_video", maxCount: 1 },
     { name: "post_pic", maxCount: 1 },
   ]),
-  post_controller.add_post_handler
+  postController.addPostHandler
 );
 
-postRouter.post('/comment/:post_id', authenticate, post_controller.comment_post)
+postRouter.post("/comment/:post_id", authenticate, postController.commentPost);
 
-postRouter.get('/feed', authenticate, post_controller.feed_posts)
+postRouter.get("/feed", authenticate, postController.feedPosts);
 
-postRouter.put('/:post_id', authenticate,
-    upload.fields([
-        { name: "post_video", maxCount: 1 },
-        { name: "post_pic", maxCount: 1 },
-    ]), post_controller.update_post_handler)
+postRouter.put(
+  "/:post_id",
+  authenticate,
+  upload.fields([
+    { name: "post_video", maxCount: 1 },
+    { name: "post_pic", maxCount: 1 },
+  ]),
+  postController.updatePostHandler
+);
 
 // Create a post with optional image/video upload
 
 // Get posts for a specific user: /posts/user/:id
-postRouter.get("/user/:id", post_controller.getUserPosts);
+postRouter.get("/user/:id", postController.getUserPosts);
 
 // Delete post if it belongs to the user
-postRouter.delete("/:id", authenticate, post_controller.deletePost);
+postRouter.delete("/:id", authenticate, postController.deletePost);
 
 module.exports = postRouter;

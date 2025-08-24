@@ -13,21 +13,21 @@ const generateCode = require("../utils/generate-code");
 const User = require("../models/user.model");
 const OTP = require("../models/OTP.model");
 
-const OTP_private_key = fs.readFileSync(
+const otpPrivateKey = fs.readFileSync(
   "./keys/OTP/OTP_private_key.pem",
   "utf-8"
 );
-const auth_private_key = fs.readFileSync(
+const authPrivateKey = fs.readFileSync(
   path.join(__dirname, "../keys/auth/auth_private_key.pem"),
   "utf-8"
 );
 
-const refresh_private_key = fs.readFileSync(
+const refreshPrivateKey = fs.readFileSync(
   path.join(__dirname, "../keys/refresh/refresh_private_key.pem"),
   "utf-8"
 );
 
-const OTP_public_key = fs.readFileSync(
+const otpPublicKey = fs.readFileSync(
   path.join(__dirname, "../keys/OTP/OTP_public_key.pem"),
   "utf-8"
 );
@@ -84,7 +84,7 @@ const signup = async (req, res, next) => {
     await OTP.create({ user_id: user._id, code });
     emailEvent.emit("sendConfirmEmail", { email, code });
 
-    const token = jwt.sign({ _id: user._id }, OTP_private_key, {
+    const token = jwt.sign({ _id: user._id }, otpPrivateKey, {
       expiresIn: "15m",
       algorithm: "RS256",
     });
@@ -133,7 +133,7 @@ const login = async (req, res, next) => {
 
     emailEvent.emit("sendConfirmEmail", { email, code });
 
-    const token = jwt.sign({ _id: user._id, code }, OTP_private_key, {
+    const token = jwt.sign({ _id: user._id, code }, otpPrivateKey, {
       expiresIn: "15m",
       algorithm: "RS256",
     });
@@ -216,7 +216,7 @@ const verifyOtp = async (req, res, next) => {
       return next(new ApiError("Invalid or missing OTP code", 400));
     }
 
-    const payload = jwt.verify(token, OTP_public_key, {
+    const payload = jwt.verify(token, otpPublicKey, {
       algorithms: ["RS256"],
     });
 
@@ -235,13 +235,12 @@ const verifyOtp = async (req, res, next) => {
       // Remove used OTPs (cleanup)
       await OTP.deleteMany({ user_id: user._id });
 
-      const refresh_token = jwt.sign(
-        { user_id: user._id },
-        refresh_private_key,
-        { algorithm: "RS256", expiresIn: "10d" }
-      );
+      const refreshToken = jwt.sign({ user_id: user._id }, refreshPrivateKey, {
+        algorithm: "RS256",
+        expiresIn: "10d",
+      });
 
-      const access_token = jwt.sign({ user_id: user._id }, auth_private_key, {
+      const accessToken = jwt.sign({ user_id: user._id }, authPrivateKey, {
         algorithm: "RS256",
         expiresIn: "15m",
       });
@@ -253,8 +252,8 @@ const verifyOtp = async (req, res, next) => {
         maxAge: 24 * 60 * 60 * 1000,
       };
 
-      res.cookie("authentication", access_token, cookieOptions);
-      res.cookie("refresh", refresh_token, {
+      res.cookie("authentication", accessToken, cookieOptions);
+      res.cookie("refresh", refreshToken, {
         ...cookieOptions,
         maxAge: 10 * 24 * 60 * 60 * 1000,
       });

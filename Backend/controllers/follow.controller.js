@@ -1,4 +1,4 @@
-const OTP = require("../models/follower.model");
+const Follower = require("../models/follower.model");
 const User = require("../models/user.model");
 const logger = require("../utils/logger");
 const ApiError = require("../utils/api-error");
@@ -24,7 +24,7 @@ const followUser = async (req, res, next) => {
       return next(new ApiError("User to follow not found", 404));
     }
 
-    const follow = await OTP.create({
+    const follow = await Follower.create({
       user: currentUser._id,
       followed: userToFollow._id,
     });
