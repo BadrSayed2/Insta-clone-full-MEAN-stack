@@ -2,11 +2,13 @@ import { Component, OnInit } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { CommonModule } from "@angular/common";
 import { RouterLink } from "@angular/router";
+import { FormsModule } from "@angular/forms";
+import { UserService, UserSummary } from "app/services/user.service";
 
 @Component({
   selector: "app-profile",
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, FormsModule],
   template: `
     <div class="max-w-4xl mx-auto py-8 px-4">
       <!-- Profile Header -->
@@ -51,14 +53,22 @@ import { RouterLink } from "@angular/router";
               <div class="font-semibold">{{ profile.postsCount }}</div>
               <div class="text-instagram-gray text-sm">posts</div>
             </div>
-            <div class="text-center">
+            <button
+              class="text-center focus:outline-none"
+              (click)="openFollowersModal()"
+              aria-label="Show followers"
+            >
               <div class="font-semibold">{{ profile.followersCount }}</div>
-              <div class="text-instagram-gray text-sm">followers</div>
-            </div>
-            <div class="text-center">
+              <div class="text-instagram-gray text-sm underline">followers</div>
+            </button>
+            <button
+              class="text-center focus:outline-none"
+              (click)="openFollowingModal()"
+              aria-label="Show following"
+            >
               <div class="font-semibold">{{ profile.followingCount }}</div>
-              <div class="text-instagram-gray text-sm">following</div>
-            </div>
+              <div class="text-instagram-gray text-sm underline">following</div>
+            </button>
           </div>
 
           <div class="space-y-1">
@@ -157,10 +167,135 @@ import { RouterLink } from "@angular/router";
         </div>
       </section>
     </div>
+
+    <!-- Followers Modal -->
+    <div
+      *ngIf="showFollowersModal"
+      class="fixed inset-0 z-50 flex items-center justify-center"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        class="absolute inset-0 bg-black/60"
+        (click)="closeModals()"
+      ></div>
+      <div
+        class="relative bg-white dark:bg-gray-900 w-full max-w-md rounded-xl shadow-xl overflow-hidden"
+      >
+        <div class="flex items-center justify-between px-4 py-3 border-b border-instagram-border dark:border-gray-800">
+          <h3 class="text-base font-semibold">Followers</h3>
+          <button class="p-1" (click)="closeModals()" aria-label="Close">
+            ✕
+          </button>
+        </div>
+        <div class="p-4">
+          <input
+            type="text"
+            [(ngModel)]="searchFollowers"
+            (ngModelChange)="onSearchChange()"
+            placeholder="Search followers"
+            class="w-full px-3 py-2 rounded-md border border-instagram-border dark:border-gray-800 bg-white dark:bg-gray-900 focus:outline-none"
+          />
+        </div>
+        <div class="max-h-96 overflow-y-auto">
+          <ng-container *ngIf="filteredFollowers.length; else noFollowers">
+            <button
+              *ngFor="let user of filteredFollowers; trackBy: trackByUserId"
+              class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 text-left"
+            >
+              <div class="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0"></div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold truncate">{{ user.username }}</div>
+                <div class="text-xs text-instagram-gray truncate">{{ user.fullName }}</div>
+              </div>
+              <button
+                type="button"
+                class="text-xs px-3 py-1 rounded-md border border-instagram-border dark:border-gray-700"
+                (click)="$event.stopPropagation(); toggleFollow(user)"
+              >
+                {{ user.isFollowing ? 'Following' : 'Follow' }}
+              </button>
+            </button>
+          </ng-container>
+          <ng-template #noFollowers>
+            <div class="p-6 text-center text-instagram-gray text-sm">
+              No followers found
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+
+    <!-- Following Modal -->
+    <div
+      *ngIf="showFollowingModal"
+      class="fixed inset-0 z-50 flex items-center justify-center"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        class="absolute inset-0 bg-black/60"
+        (click)="closeModals()"
+      ></div>
+      <div
+        class="relative bg-white dark:bg-gray-900 w-full max-w-md rounded-xl shadow-xl overflow-hidden"
+      >
+        <div class="flex items-center justify-between px-4 py-3 border-b border-instagram-border dark:border-gray-800">
+          <h3 class="text-base font-semibold">Following</h3>
+          <button class="p-1" (click)="closeModals()" aria-label="Close">
+            ✕
+          </button>
+        </div>
+        <div class="p-4">
+          <input
+            type="text"
+            [(ngModel)]="searchFollowing"
+            (ngModelChange)="onSearchChange()"
+            placeholder="Search following"
+            class="w-full px-3 py-2 rounded-md border border-instagram-border dark:border-gray-800 bg-white dark:bg-gray-900 focus:outline-none"
+          />
+        </div>
+        <div class="max-h-96 overflow-y-auto">
+          <ng-container *ngIf="filteredFollowing.length; else noFollowing">
+            <button
+              *ngFor="let user of filteredFollowing; trackBy: trackByUserId"
+              class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 text-left"
+            >
+              <div class="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0"></div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold truncate">{{ user.username }}</div>
+                <div class="text-xs text-instagram-gray truncate">{{ user.fullName }}</div>
+              </div>
+              <button
+                type="button"
+                class="text-xs px-3 py-1 rounded-md border border-instagram-border dark:border-gray-700"
+                (click)="$event.stopPropagation(); toggleFollow(user)"
+              >
+                {{ user.isFollowing ? 'Following' : 'Follow' }}
+              </button>
+            </button>
+          </ng-container>
+          <ng-template #noFollowing>
+            <div class="p-6 text-center text-instagram-gray text-sm">
+              No following found
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
   `,
 })
 export class ProfileComponent implements OnInit {
   activeTab = "posts";
+  // Modal state
+  showFollowersModal = false;
+  showFollowingModal = false;
+  // Search state
+  searchFollowers = "";
+  searchFollowing = "";
+  // Data
+  followers: UserSummary[] = [];
+  following: UserSummary[] = [];
 
   profile = {
     username: "john_doe",
@@ -248,12 +383,74 @@ export class ProfileComponent implements OnInit {
     },
   ];
 
-  constructor(private route: ActivatedRoute) {}
+  constructor(private route: ActivatedRoute, private userService: UserService) {}
 
   ngOnInit() {
     this.route.params.subscribe((params) => {
       console.log("Profile ID:", params["id"]);
       // Load profile data based on ID
+    });
+    // Preload following/followers (could be lazy-loaded on open)
+    this.loadFollowers();
+    this.loadFollowing();
+  }
+
+  // Derived lists with filter
+  get filteredFollowers(): UserSummary[] {
+    const q = this.searchFollowers.trim().toLowerCase();
+    if (!q) return this.followers;
+    return this.followers.filter(
+      (u) => u.username.toLowerCase().includes(q) || u.fullName.toLowerCase().includes(q)
+    );
+  }
+
+  get filteredFollowing(): UserSummary[] {
+    const q = this.searchFollowing.trim().toLowerCase();
+    if (!q) return this.following;
+    return this.following.filter(
+      (u) => u.username.toLowerCase().includes(q) || u.fullName.toLowerCase().includes(q)
+    );
+  }
+
+  openFollowersModal() {
+    if (!this.followers.length) this.loadFollowers();
+    this.showFollowersModal = true;
+  }
+
+  openFollowingModal() {
+    if (!this.following.length) this.loadFollowing();
+    this.showFollowingModal = true;
+  }
+
+  closeModals() {
+    this.showFollowersModal = false;
+    this.showFollowingModal = false;
+  }
+
+  onSearchChange() {
+    // No-op; using getters to filter. Kept for potential debounce hook.
+  }
+
+  toggleFollow(user: UserSummary) {
+    user.isFollowing = !user.isFollowing;
+    // TODO: call API to persist follow/unfollow
+  }
+
+  trackByUserId(_index: number, user: UserSummary) {
+    return user.id;
+  }
+
+  private loadFollowers() {
+    const profileId = this.profile.username; // or route param id
+    this.userService.getFollowers(profileId).subscribe((users: UserSummary[]) => {
+      this.followers = users;
+    });
+  }
+
+  private loadFollowing() {
+    const profileId = this.profile.username; // or route param id
+    this.userService.getFollowing(profileId).subscribe((users: UserSummary[]) => {
+      this.following = users;
     });
   }
 }
