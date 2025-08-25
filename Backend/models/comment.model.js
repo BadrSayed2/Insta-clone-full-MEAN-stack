@@ -2,7 +2,7 @@ const mongoose = require("../config/connect-mongo").mongoose;
 
 const comments_schema = new mongoose.Schema(
   {
-    user_id: {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
@@ -12,7 +12,7 @@ const comments_schema = new mongoose.Schema(
       required: true,
       minlength: 3,
     },
-    post_id: {
+    postId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Post",
       required: true,

@@ -2,7 +2,7 @@ const mongoose = require("../config/connect-mongo").mongoose;
 
 const rerfresh_token_schema = new mongoose.Schema(
   {
-    user_id: {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,

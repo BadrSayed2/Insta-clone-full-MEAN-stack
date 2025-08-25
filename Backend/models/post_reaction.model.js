@@ -2,7 +2,7 @@ const mongoose = require("../config/connect-mongo").mongoose;
 
 const post_reaction_schema = new mongoose.Schema(
   {
-    user_id: {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
@@ -12,7 +12,7 @@ const post_reaction_schema = new mongoose.Schema(
       enum: ["like", "love", "angry", "sad"],
       required: true,
     },
-    post_id: {
+    postId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Post",
       required: true,

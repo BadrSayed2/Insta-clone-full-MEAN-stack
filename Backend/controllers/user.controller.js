@@ -1,6 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-const jwt = require("jsonwebtoken");
 const CryptoJS = require("crypto-js");
 
 const User = require("../models/user.model");
@@ -34,7 +33,7 @@ const getOtherUserProfile = async (req, res, next) => {
 const getUserPosts = async (req, res, next) => {
   const userId = req.params.id;
   const userPosts = await Post.find({
-    user_id: userId,
+    userId: userId,
     privacy: "public",
   }).sort({ createdAt: -1 });
 
@@ -45,7 +44,7 @@ const getUserPosts = async (req, res, next) => {
 };
 
 const getProfile = async (req, res, next) => {
-  const userId = req?.user_id;
+  const userId = req?.user?.id;
 
   let profile = await User.findById(userId)
     .select("-password -_id -email -phoneNumber -isVerified")
@@ -54,7 +53,7 @@ const getProfile = async (req, res, next) => {
   if (!profile) return next(new ApiError("User not found", 404));
   profile.profile_pic = profile?.profile_pic?.url || null;
 
-  let userPosts = await Post.find({ user_id: userId })
+  let userPosts = await Post.find({ userId: userId })
     .sort({ createdAt: -1 })
     .limit(10)
     .lean();
@@ -83,8 +82,7 @@ const updateProfile = async (req, res, next) => {
   if (!userId) return next(new ApiError("Unauthorized", 401));
 
   const { userName, fullName, bio, gender, accessability, phoneNumber } =
-    req.body;
-
+    req.body || {};
   const updates = {
     ...(userName && { userName }),
     ...(fullName && { fullName }),
@@ -126,7 +124,8 @@ const updateProfile = async (req, res, next) => {
     };
   }
 
-  if (Object.keys(updates).length === 0) {
+  // If no text fields and no file are provided, nothing to update
+  if (Object.keys(updates).length === 0 && !req.file) {
     return next(new ApiError("No valid fields to update", 400));
   }
 

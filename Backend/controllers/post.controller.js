@@ -18,7 +18,7 @@ const ApiError = require("../utils/api-error");
 
 postController.getUserPosts = async (req, res, next) => {
   const userId = req.params.id;
-  const posts = await Post.find({ user_id: userId }).sort({ createdAt: -1 });
+  const posts = await Post.find({ userId: userId }).sort({ createdAt: -1 });
   if (!posts.length) {
     return next(new ApiError("No posts found for this user", 404));
   }
@@ -32,7 +32,7 @@ postController.deletePost = async (req, res, next) => {
     return next(new ApiError("Post not found", 404));
   }
   // Check if the post belongs to the user
-  if (post.user_id.toString() !== req.user.id) {
+  if (post.userId.toString() !== req.user.id) {
     return next(
       new ApiError("You are not authorized to delete this post", 403)
     );
@@ -83,7 +83,7 @@ postController.addPostHandler = async (req, res, next) => {
   }
 
   newPost.media = { url: result, media_type: mediaType };
-  newPost.user_id = userId;
+  newPost.userId = userId;
 
   console.log(newPost);
 
@@ -100,7 +100,7 @@ postController.updatePostHandler = async (req, res, next) => {
     return next(new ApiError(req.fileValidationError, 400));
   }
 
-  const userId = req.user_id;
+  const userId = req.user?.id;
   const newPost = req?.body;
 
   const video = req.files["post_video"] ? req.files["post_video"][0] : null;
@@ -109,13 +109,13 @@ postController.updatePostHandler = async (req, res, next) => {
   let mediaType = "";
   let cloudinaryPath = "";
 
-  const postId = req?.params?.post_id;
+  const postId = req?.params?.postId;
   const foundPost = await Post.findById(postId);
   if (!foundPost) {
     return next(new ApiError("Post not found", 404));
   }
 
-  if (foundPost.user_id != userId) {
+  if (foundPost.userId != userId) {
     return next(new ApiError("this is not your post", 401));
   }
   if (!pic && !video) {
@@ -156,8 +156,8 @@ postController.updatePostHandler = async (req, res, next) => {
 };
 
 postController.commentPost = async (req, res, next) => {
-  const userId = req?.user_id;
-  const postId = req?.params?.post_id;
+  const userId = req?.user?.id;
+  const postId = req?.params?.postId;
   const comment = req?.body?.comment;
   if (!postId || !userId || !comment) {
     return next(new ApiError("you must pass the post id and a comment", 400));
@@ -166,13 +166,13 @@ postController.commentPost = async (req, res, next) => {
   if (!post) {
     return next(new ApiError("Post not found", 404));
   }
-  if (post.user_id != userId) {
+  if (post.userId != userId) {
     return next(new ApiError("this is not your post", 401));
   }
 
   await Comment.create({
-    post_id: postId,
-    user_id: userId,
+    postId: postId,
+    userId: userId,
     content: comment,
   });
 
@@ -184,20 +184,20 @@ postController.commentPost = async (req, res, next) => {
 };
 
 postController.feedPosts = async (req, res, next) => {
-  const userId = req?.user_id;
+  const userId = req?.user?.id;
   const offset = req?.query?.limit || 0;
   const following = await Follower.find({ user: userId }).select(
     "followed -_id"
   );
   const followingIds = following.map((f) => f.followed);
 
-  const db_posts = await Post.find({ user_id: { $in: followingIds } })
+  const db_posts = await Post.find({ userId: { $in: followingIds } })
     .sort({ createdAt: -1 })
     .skip(offset * 15)
     .limit(15)
-    .select("-user_id")
+    .select("-userId")
     .populate({
-      path: "user_id",
+      path: "userId",
       select: "userName fullName profile_pic accessabilty",
     })
     .lean();

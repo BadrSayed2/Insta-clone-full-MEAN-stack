@@ -15,12 +15,12 @@ postRouter.post(
   postController.addPostHandler
 );
 
-postRouter.post("/comment/:post_id", authenticate, postController.commentPost);
+postRouter.post("/comment/:postId", authenticate, postController.commentPost);
 
 postRouter.get("/feed", authenticate, postController.feedPosts);
 
 postRouter.put(
-  "/:post_id",
+  "/:postId",
   authenticate,
   upload.fields([
     { name: "post_video", maxCount: 1 },
