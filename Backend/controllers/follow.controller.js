@@ -5,36 +5,32 @@ const ApiError = require("../utils/api-error");
 const ApiResponse = require("../utils/api-response");
 
 const followUser = async (req, res, next) => {
-  try {
-    const { userIdToFollow } = req.body;
-    const currentUserId = req.user.id;
-    logger.debug(`Follow request target=${userIdToFollow} by=${currentUserId}`);
+  const { userIdToFollow } = req.body;
+  const currentUserId = req.user.id;
+  logger.debug(`Follow request target=${userIdToFollow} by=${currentUserId}`);
 
-    if (currentUserId === userIdToFollow) {
-      return next(new ApiError("You cannot follow yourself", 400));
-    }
-
-    const currentUser = await User.findById({ _id: currentUserId });
-    if (!currentUser) {
-      return next(new ApiError("Current user not found", 404));
-    }
-
-    const userToFollow = await User.findById({ _id: userIdToFollow });
-    if (!userToFollow) {
-      return next(new ApiError("User to follow not found", 404));
-    }
-
-    const follow = await Follower.create({
-      user: currentUser._id,
-      followed: userToFollow._id,
-    });
-
-    return res
-      .status(201)
-      .json(new ApiResponse({ follow }, "Followed successfully"));
-  } catch (err) {
-    return next(err);
+  if (currentUserId === userIdToFollow) {
+    return next(new ApiError("You cannot follow yourself", 400));
   }
+
+  const currentUser = await User.findById({ _id: currentUserId });
+  if (!currentUser) {
+    return next(new ApiError("Current user not found", 404));
+  }
+
+  const userToFollow = await User.findById({ _id: userIdToFollow });
+  if (!userToFollow) {
+    return next(new ApiError("User to follow not found", 404));
+  }
+
+  const follow = await Follower.create({
+    user: currentUser._id,
+    followed: userToFollow._id,
+  });
+
+  return res
+    .status(201)
+    .json(new ApiResponse({ follow }, "Followed successfully"));
 };
 
 module.exports = { followUser };

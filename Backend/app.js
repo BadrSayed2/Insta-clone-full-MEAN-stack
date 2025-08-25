@@ -10,19 +10,19 @@ const postRouter = require("./routes/post.routes");
 const followRouter = require("./routes/follow.routes");
 
 const { globalError, handleNotFound } = require("./middlewares/global-error");
-
-const cookieParser = require('cookie-parser')
+const morganMiddleware = require("./middlewares/morganLogger");
+const cookieParser = require("cookie-parser");
 const fs = require("fs");
 const yaml = require("js-yaml");
 const openapiSpec = yaml.load(fs.readFileSync("./openapi.yaml", "utf8"));
+const DB = require("./config/db_config");
 
 const app = express();
 
 app.use(express.json());
+app.use(morganMiddleware);
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser())
-const DB = require("./config/db_config");
-
+app.use(cookieParser());
 
 DB.connect_to_mongodb();
 
