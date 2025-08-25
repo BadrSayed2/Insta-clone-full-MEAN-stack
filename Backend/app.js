@@ -15,7 +15,6 @@ const cookieParser = require("cookie-parser");
 const fs = require("fs");
 const yaml = require("js-yaml");
 const openapiSpec = yaml.load(fs.readFileSync("./openapi.yaml", "utf8"));
-const DB = require("./config/db_config");
 
 const app = express();
 
@@ -23,8 +22,6 @@ app.use(express.json());
 app.use(morganMiddleware);
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-
-DB.connect_to_mongodb();
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openapiSpec));
 
@@ -41,7 +38,4 @@ if (process.env.NODE_ENV === "development") {
 } else {
   logger.info("Production Mode");
 }
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  logger.info(`Server started on port ${PORT}`);
-});
+module.exports = app;

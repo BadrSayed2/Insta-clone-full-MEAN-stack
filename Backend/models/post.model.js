@@ -1,4 +1,4 @@
-const mongoose = require("../config/db_config").mongoose;
+const mongoose = require("../config/connect-mongo").mongoose;
 
 const post_schema = new mongoose.Schema(
   {

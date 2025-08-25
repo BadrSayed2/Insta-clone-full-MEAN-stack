@@ -1,28 +1,30 @@
-const mongoose = (require('../config/db_config')).mongoose
+const mongoose = require("../config/connect-mongo").mongoose;
 
-const comments_schema = new mongoose.Schema({
+const comments_schema = new mongoose.Schema(
+  {
     user_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
     content: {
-        type: String,
-        required: true,
-        minlength: 3
+      type: String,
+      required: true,
+      minlength: 3,
     },
     post_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Post',
-        required: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Post",
+      required: true,
     },
-    reactionsNumber : {
-        type : Number,
-        default : 0, 
-    }
+    reactionsNumber: {
+      type: Number,
+      default: 0,
+    },
+  },
+  { timestamps: true }
+);
 
-}, { timestamps: true })
-
-const Comment = mongoose.model('Comment', comments_schema)
+const Comment = mongoose.model("Comment", comments_schema);
 
 module.exports = Comment;
