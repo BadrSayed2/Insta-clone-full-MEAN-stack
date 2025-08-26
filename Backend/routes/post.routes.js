@@ -32,7 +32,7 @@ postRouter.put(
 // Create a post with optional image/video upload
 
 // Get posts for a specific user: /posts/user/:id
-postRouter.get("/user/:id", postController.getUserPosts);
+postRouter.get("/user/:id", authenticate , postController.getUserPosts);
 
 // Delete post if it belongs to the user
 postRouter.delete("/:id", authenticate, postController.deletePost);
