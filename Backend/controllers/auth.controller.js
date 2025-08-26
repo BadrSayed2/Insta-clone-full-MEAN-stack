@@ -89,7 +89,11 @@ const login = async (req, res, next) => {
 
   const user = await User.findOne({ email });
 
-  if (!user || !user.isVerified) {
+    if (!user.isVerified) {
+    return next(new ApiError("Email is not verified. Please verify your email first.", 403));
+  }
+
+  if (!user) {
     return next(new ApiError("in-valid login Data", 400));
   }
 
