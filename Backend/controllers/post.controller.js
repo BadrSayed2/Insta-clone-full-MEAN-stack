@@ -10,10 +10,11 @@ const {
   getImageUrl,
   getVideoUrl,
 } = require("../utils/media");
-
 const ApiResponse = require("../utils/api-response");
 const ApiError = require("../utils/api-error");
-
+//! @desc    Get a post by ID
+// @route   GET /posts/:postId
+// @access  private/user
 const getPost = async (req, res, next) => {
   const postId = req.params.postId;
   const post = await Post.findById(postId).select("-__v");
@@ -28,7 +29,7 @@ const getPost = async (req, res, next) => {
 };
 
 const deletePost = async (req, res, next) => {
-  const postId = req.params.id;
+  const postId = req.params.postId;
   const post = await Post.findById(postId);
   if (!post) {
     return next(new ApiError("Post not found", 404));
@@ -39,19 +40,18 @@ const deletePost = async (req, res, next) => {
       new ApiError("You are not authorized to delete this post", 403)
     );
   }
-  // Best-effort cleanup of remote media
   try {
     if (post.media?.publicId) {
       await deleteAsset(post.media.publicId, post.media.media_type);
     }
   } catch {}
-  await post.remove();
+  await post.deleteOne();
   return res
     .status(200)
     .json(new ApiResponse({ message: "Post deleted successfully" }));
 };
 
-const addPostHandler = async (req, res, next) => {
+const createPost = async (req, res, next) => {
   if (req.fileValidationError) {
     return next(new ApiError(req.fileValidationError, 400));
   }
@@ -275,7 +275,7 @@ const getUserPosts = async (req, res, next) => {
 
 module.exports = {
   deletePost,
-  addPostHandler,
+  createPost,
   updatePostHandler,
   commentPost,
   feedPosts,

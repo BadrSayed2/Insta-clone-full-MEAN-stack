@@ -3,6 +3,7 @@ const express = require("express");
  * /users
   GET    /users/me
   PATCH  /users/me
+  ------------------
   GET    /users/:userId
   GET    /users/:userId/followers
   POST   /users/:userId/follow
@@ -18,7 +19,7 @@ const express = require("express");
  */
 
 const {
-  addPostHandler,
+  createPost,
   deletePost,
   updatePostHandler,
   commentPost,
@@ -37,13 +38,11 @@ postRouter.post(
     { name: "post_video", maxCount: 1 },
     { name: "post_pic", maxCount: 1 },
   ]),
-  addPostHandler
+  createPost
 );
-//? this will be in post.routes.js
-// postRouter.post("/comment/:postId", authenticate, commentPost);
 //! get user posts for users which he follows
 postRouter.get("/feed", authenticate, feedPosts);
-//get specific Post with id
+//!get specific Post with id
 postRouter.get("/:postId", getPost);
 //! update post
 postRouter.put(
@@ -55,10 +54,7 @@ postRouter.put(
   ]),
   updatePostHandler
 );
-
-// Get posts for a specific user: /posts/user/:id
-
-// Delete post if it belongs to the user
-postRouter.delete("/:id", authenticate, deletePost);
+//! Delete post if it belongs to the user
+postRouter.delete("/:postId", authenticate, deletePost);
 
 module.exports = postRouter;
