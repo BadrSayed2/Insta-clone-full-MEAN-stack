@@ -30,19 +30,6 @@ const getOtherUserProfile = async (req, res, next) => {
   return res.status(200).json(ApiResponse({ data: user }));
 };
 
-const getUserPosts = async (req, res, next) => {
-  const userId = req.params.id;
-  const userPosts = await Post.find({
-    userId: userId,
-    privacy: "public",
-  }).sort({ createdAt: -1 });
-
-  if (!userPosts || userPosts.length === 0) {
-    return res.status(404).json(new ApiError("No posts found", 404));
-  }
-  return res.status(200).json(new ApiResponse({ data: { posts: userPosts } }));
-};
-
 const getProfile = async (req, res, next) => {
   const userId = req?.user?.id;
 
@@ -161,7 +148,6 @@ const getFollowers = async (req, res, next) => {
 
 module.exports = {
   getOtherUserProfile,
-  getUserPosts,
   getProfile,
   getFollowers,
   updateProfile,

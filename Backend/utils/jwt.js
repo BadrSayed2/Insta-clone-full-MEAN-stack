@@ -32,7 +32,7 @@ const generateOTPToken = (userId) => {
 };
 const generateAccessToken = (userId) => {
   const accessToken = jwt.sign({ userId }, authPrivateKey, {
-    expiresIn: "15m",
+    expiresIn: "120m",
     algorithm: "RS256",
   });
   return accessToken;
