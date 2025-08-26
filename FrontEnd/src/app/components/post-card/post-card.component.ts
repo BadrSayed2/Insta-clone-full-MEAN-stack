@@ -1,17 +1,7 @@
 import { Component, Input } from "@angular/core";
 import { RouterLink } from "@angular/router";
 import { CommonModule } from "@angular/common";
-
-export interface Post {
-  id: number;
-  username: string;
-  avatar: string;
-  image: string;
-  caption: string;
-  likes: number;
-  comments: number;
-  timestamp: string;
-}
+import { Post } from "app/interfaces/post";
 
 @Component({
   selector: "app-post-card",

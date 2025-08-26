@@ -1,85 +1,38 @@
-import { Component } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import {
-  PostCardComponent,
-  Post,
-} from "../../components/post-card/post-card.component";
-
+import {PostCardComponent} from "../../components/post-card/post-card.component";
+import { Post } from "app/interfaces/post";
+import { PostService } from "app/services/post-service";
+import { formatDistanceToNow } from 'date-fns';
 @Component({
   selector: "app-home",
   standalone: true,
   imports: [CommonModule, PostCardComponent],
-  template: `
-    <div class="flex">
-      <main class="flex-1 max-w-2xl mx-auto py-8 px-4">
-        <!-- Stories Section -->
-        <section
-          class="bg-white dark:bg-gray-900 border border-instagram-border dark:border-gray-800 rounded-lg p-4 mb-6"
-        >
-          <h2 class="font-semibold text-sm mb-3 text-instagram-gray">
-            Stories
-          </h2>
-          <div class="flex space-x-4 overflow-x-auto no-scrollbar">
-            <div
-              *ngFor="let story of stories"
-              class="flex flex-col items-center space-y-1 flex-shrink-0"
-            >
-              <div
-                class="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 via-red-500 to-yellow-500 p-1"
-              >
-                <div class="w-full h-full bg-gray-300 rounded-full"></div>
-              </div>
-              <span class="text-xs text-center max-w-16 truncate">{{
-                story.username
-              }}</span>
-            </div>
-          </div>
-        </section>
-
-        <!-- Posts Feed -->
-        <section>
-          <app-post-card
-            *ngFor="let post of posts"
-            [post]="post"
-          ></app-post-card>
-        </section>
-      </main>
-
-      <!-- Suggestions Sidebar -->
-      <aside class="hidden xl:block w-80 py-8 px-4">
-        <div
-          class="bg-white dark:bg-gray-900 border border-instagram-border dark:border-gray-800 rounded-lg p-4"
-        >
-          <h2 class="font-semibold text-sm mb-4 text-instagram-gray">
-            Suggestions For You
-          </h2>
-          <div class="space-y-3">
-            <div
-              *ngFor="let suggestion of suggestions"
-              class="flex items-center justify-between"
-            >
-              <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-gray-300 rounded-full"></div>
-                <div>
-                  <p class="font-semibold text-sm">{{ suggestion.username }}</p>
-                  <p class="text-instagram-gray text-xs">
-                    {{ suggestion.mutualFriends }} mutual friends
-                  </p>
-                </div>
-              </div>
-              <button
-                class="text-instagram-blue text-sm font-semibold hover:text-blue-600"
-              >
-                Follow
-              </button>
-            </div>
-          </div>
-        </div>
-      </aside>
-    </div>
-  `,
+  templateUrl: 'home.component.html',
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit {
+
+  constructor(private postService: PostService) { }
+
+  ngOnInit(): void {
+    this.postService.get_posts().subscribe((data: any) => {
+      console.log(data);
+      const posts_data = data?.data;
+      this.posts  = posts_data.map((post: any) => {
+        return {
+          id : post._id,
+          username :post.user.userName,
+          avatar :post.user.profile_pic,
+          image :post.media.url,
+          caption : post.caption,
+          likes : 1000,
+          comments : post.commentsNumber,
+          timestamp : formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })
+        }
+      })
+    })
+  }
+
   stories = [
     { username: "john_doe", avatar: "" },
     { username: "jane_smith", avatar: "" },
