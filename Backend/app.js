@@ -15,9 +15,9 @@ const cookieParser = require("cookie-parser");
 const fs = require("fs");
 const yaml = require("js-yaml");
 const openapiSpec = yaml.load(fs.readFileSync("./openapi.yaml", "utf8"));
-
+const cors = require("cors");
 const app = express();
-
+app.use(cors("*"));
 app.use(express.json());
 app.use(morganMiddleware);
 app.use(express.urlencoded({ extended: true }));

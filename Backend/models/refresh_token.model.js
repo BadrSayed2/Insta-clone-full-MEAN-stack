@@ -1,6 +1,6 @@
 const mongoose = require("../config/connect-mongo").mongoose;
 
-const rerfresh_token_schema = new mongoose.Schema(
+const refresh_token_schema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -15,11 +15,11 @@ const rerfresh_token_schema = new mongoose.Schema(
   { timestamps: true }
 );
 
-rerfresh_token_schema.index(
+refresh_token_schema.index(
   { createdAt: 1 },
   { expireAfterSeconds: 100 * 24 * 60 * 60 }
 );
 
-const RefreshToken = mongoose.model("RefreshToken", rerfresh_token_schema);
+const RefreshToken = mongoose.model("RefreshToken", refresh_token_schema);
 
 module.exports = RefreshToken;

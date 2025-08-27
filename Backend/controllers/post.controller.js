@@ -56,7 +56,7 @@ const createPost = async (req, res, next) => {
     return next(new ApiError(req.fileValidationError, 400));
   }
 
-  const userId = req?.user?.id;
+  const userId = req?.user?.id || "68ada9aad10408e4e01f3109";
   const newPost = req?.body || {};
 
   const video =
@@ -247,12 +247,19 @@ const feedPosts = async (req, res, next) => {
   return res.json({ posts, success: true });
 };
 
-// Get posts for a specific user (supports nested /users/:userId/posts)
+// Get posts for a specific user (supports nested /users/:username/posts)
 const getUserPosts = async (req, res, next) => {
-  const userIdParam = req.params.userId || req.params.id;
-  if (!userIdParam) return next(new ApiError("User id is required", 400));
+  const username = req?.params?.username;
+  if (!username) return next(new ApiError("User name is required", 400));
   const offset = Number(req?.query?.offset || 0);
-  const db_posts = await Post.find({ userId: userIdParam })
+
+  // Resolve username to userId
+  const user = await require("../models/user.model")
+    .findOne({ userName: username })
+    .select("_id");
+  if (!user) return next(new ApiError("User not found", 404));
+
+  const db_posts = await Post.find({ userId: user._id })
     .sort({ createdAt: -1 })
     .skip(offset * 15)
     .limit(15)
@@ -272,8 +279,14 @@ const getUserPosts = async (req, res, next) => {
   });
   return res.json({ posts, success: true });
 };
-
+const getMyPosts = async (req, res, next) => {
+  const userId = req?.user?.id;
+  console.log(`Fetching posts for user: ${userId}`);
+  const posts = await Post.find({ userId }).sort({ createdAt: -1 }).lean();
+  return res.json(new ApiResponse({ data: posts, success: true }));
+};
 module.exports = {
+  getMyPosts,
   deletePost,
   createPost,
   updatePostHandler,

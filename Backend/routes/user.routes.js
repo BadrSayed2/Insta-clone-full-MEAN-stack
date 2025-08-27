@@ -1,4 +1,5 @@
 const express = require("express");
+const postRouter = require("../routes/post.routes.js");
 const {
   getOtherUserProfile,
   getProfile,
@@ -8,12 +9,11 @@ const {
 const upload = require("../config/multer.config.js");
 const authenticate = require("../middlewares/auth-middleware.js");
 const router = express.Router();
-
-// Profile routes (from legacy user.routes.js)
-router.get("/", authenticate, getProfile);
+router.get("/me", authenticate, getProfile);
+router.patch("/me", authenticate, upload.single("profile"), updateProfile);
+//h1 -------
+router.get("/:username", getOtherUserProfile);
 router.get("/followers", authenticate, getFollowers);
-router.get("/:id", getOtherUserProfile);
-
-router.patch("/", authenticate, upload.single("profile"), updateProfile);
+router.use("/:username/posts", postRouter);
 
 module.exports = router;

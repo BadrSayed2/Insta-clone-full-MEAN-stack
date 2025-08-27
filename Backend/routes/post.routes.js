@@ -3,7 +3,6 @@ const express = require("express");
  * /users
   GET    /users/me
   PATCH  /users/me
-  ------------------
   GET    /users/:userId
   GET    /users/:userId/followers
   POST   /users/:userId/follow
@@ -25,11 +24,14 @@ const {
   commentPost,
   feedPosts,
   getPost,
+  getUserPosts,
+  getMyPosts,
 } = require("../controllers/post.controller.js");
 const authenticate = require("../middlewares/auth-middleware.js");
 const upload = require("../config/multer.config.js");
 
-const postRouter = express.Router();
+// Enable mergeParams so :username from parent route is visible here when nested
+const postRouter = express.Router({ mergeParams: true });
 //! create new Post
 postRouter.post(
   "/",
@@ -40,10 +42,12 @@ postRouter.post(
   ]),
   createPost
 );
-//! get user posts for users which he follows
+//? this will be in post.routes.js
+// postRouter.post("/comment/:postId", authenticate, commentPost);
+
 postRouter.get("/feed", authenticate, feedPosts);
-//!get specific Post with id
-postRouter.get("/:postId", getPost);
+// Authenticated user's posts
+postRouter.get("/me", authenticate, getMyPosts);
 //! update post
 postRouter.put(
   "/:postId",
@@ -54,7 +58,15 @@ postRouter.put(
   ]),
   updatePostHandler
 );
-//! Delete post if it belongs to the user
+
+// Nested list route when mounted at /users/:username/posts
+// If mounted at top-level /posts, this will return 400 from controller when username is missing
+postRouter.get("/", getUserPosts);
+
+// Single post endpoints at top-level /posts
+postRouter.get("/:postId", getPost);
+
+// Delete post if it belongs to the user
 postRouter.delete("/:postId", authenticate, deletePost);
 
 module.exports = postRouter;

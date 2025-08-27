@@ -1,0 +1,368 @@
+/* Card (light by default, dark under .dark) */
+.cp-card {
+  background: #ffffff; /* light default */
+  color: #262626;
+  border: 1px solid #dbdbdb; /* Instagram gray border */
+  border-radius: 12px;
+  padding: 16px;
+  max-width: 40rem;
+  margin: 16px auto;
+  position: relative; /* for overlay */
+}
+
+:host-context(.dark) .cp-card,
+.dark .cp-card {
+  background: #0f172a; /* navy-dark card */
+  color: #e5e7eb;
+  border-color: #1e293b; /* slate-800 */
+}
+
+.cp-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+/* Dropzone */
+.cp-dropzone {
+  border: 2px dashed #dbdbdb; /* light default */
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  background: #fafafa;
+}
+
+:host-context(.dark) .cp-dropzone,
+.dark .cp-dropzone {
+  background: #0b1220; /* navy panel */
+  border-color: #1e293b;
+}
+
+.cp-dropzone--over {
+  background: #eef6ff; /* light default */
+  border-color: #3797f0; /* Instagram blue */
+}
+
+:host-context(.dark) .cp-dropzone.cp-dropzone--over,
+.dark .cp-dropzone.cp-dropzone--over {
+  background: #0e223c; /* navy hover */
+  border-color: #3797f0;
+}
+
+.cp-dropzone__text {
+  font-size: 0.95rem;
+}
+
+.cp-dropzone__hint {
+  color: #6b7280;
+  font-size: 0.85rem;
+  margin: 0.25rem 0 0.75rem 0;
+}
+
+.cp-hidden-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+/* Buttons (light by default) */
+.cp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 2.25rem;
+  padding: 0 0.875rem;
+  border-radius: 0.5rem;
+  border: 1px solid #dbdbdb;
+  background: #ffffff;
+  color: #262626;
+  cursor: pointer;
+}
+
+.cp-btn:hover {
+  background: #f5f5f5;
+}
+
+.cp-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Dark variants when .dark */
+:host-context(.dark) .cp-btn,
+.dark .cp-btn {
+  background: #0e1b2f; /* navy button */
+  color: #e5e7eb;
+  border-color: #1e293b;
+}
+
+:host-context(.dark) .cp-btn:hover,
+.dark .cp-btn:hover {
+  background: #12223d;
+}
+
+.cp-btn--primary {
+  background: #0095f6; /* Instagram primary */
+  color: white;
+  border-color: #0095f6;
+}
+
+.cp-btn--primary:hover {
+  background: #1083e8;
+}
+
+.cp-btn--secondary {
+  background: #f3f4f6; /* light default */
+}
+
+:host-context(.dark) .cp-btn--secondary,
+.dark .cp-btn--secondary {
+  background: #13243f; /* subtler navy */
+  border-color: #1e293b;
+  color: #e5e7eb;
+}
+
+/* Preview */
+.cp-preview {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.cp-file-name {
+  font-size: 0.85rem;
+  color: #6b7280; /* light default */
+}
+
+:host-context(.dark) .cp-file-name,
+.dark .cp-file-name {
+  color: #a3b3d1; /* muted blue-gray */
+}
+
+.cp-media {
+  width: 100%;
+  max-height: 24rem;
+  object-fit: contain;
+  border-radius: 0.5rem;
+  background: #11182722;
+}
+
+.cp-preview-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* Caption */
+.cp-field {
+  margin-top: 1rem;
+}
+
+.cp-label {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.cp-textarea {
+  width: 100%;
+  border: 1px solid #dbdbdb; /* light default */
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  resize: vertical;
+  min-height: 96px;
+  background: #fafafa;
+  color: #262626;
+  outline: none;
+}
+
+.cp-textarea::placeholder {
+  color: #8e8e8e; /* light default */
+}
+
+.cp-textarea:focus {
+  border-color: #3797f0;
+  box-shadow: 0 0 0 2px rgba(55, 151, 240, 0.15);
+  background: #ffffff;
+}
+
+:host-context(.dark) .cp-textarea,
+.dark .cp-textarea {
+  background: #0f172a; /* navy input */
+  color: #e5e7eb;
+  border-color: #1e293b;
+}
+
+:host-context(.dark) .cp-textarea::placeholder,
+.dark .cp-textarea::placeholder {
+  color: #93a4c2;
+}
+
+:host-context(.dark) .cp-textarea:focus,
+.dark .cp-textarea:focus {
+  border-color: #3797f0;
+  box-shadow: 0 0 0 2px rgba(55, 151, 240, 0.22);
+  background: #13213a;
+}
+
+.cp-hint {
+  display: flex;
+  justify-content: flex-end;
+  font-size: 0.8rem;
+  color: #8e8e8e; /* light default */
+  margin-top: 0.25rem;
+}
+
+:host-context(.dark) .cp-hint,
+.dark .cp-hint {
+  color: #93a4c2; /* readable navy gray */
+}
+
+.cp-hint--warn {
+  color: #d97706;
+}
+
+/* Actions */
+.cp-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* Overlay loading */
+.cp-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  border-radius: 12px;
+  z-index: 10;
+}
+
+.cp-overlay__text {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.cp-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: cp-spin 0.9s linear infinite;
+}
+
+@keyframes cp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Toast */
+.cp-toast {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 520px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(229, 231, 235, 0.7);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  color: #0f172a;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.18);
+  z-index: 1000;
+  animation: cp-toast-in 200ms ease-out;
+}
+
+.cp-toast--success {
+  border-color: #10b981;
+}
+
+.cp-toast--error {
+  border-color: #ef4444;
+}
+
+.cp-toast--info {
+  border-color: #3b82f6;
+}
+
+:host-context(.dark) .cp-toast,
+.dark .cp-toast {
+  background: rgba(15, 23, 42, 0.6);
+  color: #e5e7eb;
+  border-color: rgba(30, 41, 59, 0.8);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.cp-toast__icon {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  color: #3b82f6; /* default info */
+}
+
+.cp-toast--success .cp-toast__icon {
+  color: #10b981;
+}
+.cp-toast--error .cp-toast__icon {
+  color: #ef4444;
+}
+.cp-toast--info .cp-toast__icon {
+  color: #3b82f6;
+}
+
+.cp-toast__text {
+  flex: 1 1 auto;
+}
+
+.cp-toast__close {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: inherit;
+  line-height: 1;
+  font-size: 18px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.cp-toast__close:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+:host-context(.dark) .cp-toast__close:hover,
+.dark .cp-toast__close:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+@keyframes cp-toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}

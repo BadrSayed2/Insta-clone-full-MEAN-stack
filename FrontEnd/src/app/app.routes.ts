@@ -1,5 +1,6 @@
 import { Routes } from "@angular/router";
-
+//! we use loadComponent for lazy loading
+//? you can use instant loading but for only common components that are used frequently
 export const routes: Routes = [
   {
     path: "",
@@ -24,6 +25,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: "verify-code",
+    loadComponent: () =>
+      import("./pages/verify-code/verify-code.component").then(
+        (m) => m.VerifyCodeComponent
+      ),
+  },
+  {
     path: "profile/:id",
     loadComponent: () =>
       import("./pages/profile/profile.component").then(
@@ -42,6 +50,13 @@ export const routes: Routes = [
     loadComponent: () =>
       import("./pages/explore/explore.component").then(
         (m) => m.ExploreComponent
+      ),
+  },
+  {
+    path: "create-post",
+    loadComponent: () =>
+      import("./pages/create-post/create-post.component").then(
+        (m) => m.CreatePostComponent
       ),
   },
   {

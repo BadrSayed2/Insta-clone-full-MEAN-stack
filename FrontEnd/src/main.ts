@@ -1,10 +1,11 @@
-import { Component } from "@angular/core";
+import { Component, importProvidersFrom } from "@angular/core";
 import { bootstrapApplication } from "@angular/platform-browser";
 import { provideRouter } from "@angular/router";
 import { Router, RouterOutlet } from "@angular/router";
 import { routes } from "./app/app.routes";
 import { SidebarComponent } from "./app/components/sidebar/sidebar.component";
 import { NgIf } from "@angular/common";
+import { provideHttpClient } from "@angular/common/http";
 
 @Component({
   selector: "app-root",
@@ -26,7 +27,12 @@ import { NgIf } from "@angular/common";
 export class App {
   name = "Instagram Clone";
 
-  private hideOn = new Set(["/login", "/signup"]);
+  private hideOn = new Set([
+    "/login",
+    "/signup",
+    "/verify-code",
+    "/forgot-password",
+  ]);
   constructor(private router: Router) {}
   get showSidebar() {
     const url = this.router.url.split("?")[0];
@@ -35,5 +41,5 @@ export class App {
 }
 
 bootstrapApplication(App, {
-  providers: [provideRouter(routes)],
+  providers: [provideHttpClient(), provideRouter(routes)],
 });

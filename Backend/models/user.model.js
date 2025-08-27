@@ -1,5 +1,5 @@
 const mongoose = require("../config/connect-mongo").mongoose;
-
+const slugify = require("slugify");
 const user_schema = new mongoose.Schema(
   {
     userName: {
@@ -36,7 +36,11 @@ const user_schema = new mongoose.Schema(
       },
     },
 
-    bio: String,
+    bio: {
+      type: String,
+      maxlength: 160,
+      default: null,
+    },
 
     gender: {
       type: String,
@@ -53,12 +57,28 @@ const user_schema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    followCount: {
+      type: Number,
+      default: 0,
+    },
+    followingCount: {
+      type: Number,
+      default: 0,
+    },
+    postsCount: {
+      type: Number,
+      default: 0,
+    },
     passwordResetToken: String,
     passwordResetExpires: Date,
   },
   { timestamps: true }
 );
-
+// slugify username
+user_schema.pre("save", function (next) {
+  this.userName = slugify(this.userName, { lower: true });
+  next();
+});
 const User = mongoose.model("User", user_schema);
 
 module.exports = User;

@@ -1,7 +1,7 @@
 import { Component } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import { RouterLink } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
 
 @Component({
   selector: "app-forgot-password",
@@ -101,6 +101,7 @@ export class ForgotPasswordComponent {
   email = "";
   sent = false;
   loading = false;
+  constructor(private router: Router) {}
 
   send() {
     if (!this.email) return;
@@ -109,7 +110,9 @@ export class ForgotPasswordComponent {
     setTimeout(() => {
       this.sent = true;
       this.loading = false;
-      console.log("Password reset link sent to", this.email);
+      this.router.navigate(["/verify-code"], {
+        queryParams: { email: this.email },
+      });
     }, 800);
   }
 }

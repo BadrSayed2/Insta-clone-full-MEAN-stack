@@ -63,6 +63,27 @@ import { ThemeService } from "../../services/theme.service";
             <span class="hidden lg:inline">Search</span>
           </button>
           <a
+            routerLink="/create-post"
+            routerLinkActive="active-nav text-instagram-blue"
+            class="nav-link justify-center lg:justify-start"
+          >
+            <svg
+              class="w-7 h-7 lg:w-6 lg:h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              ></path>
+            </svg>
+            <span class="hidden lg:inline">Add Post</span>
+          </a>
+          <a
             routerLink="/explore"
             routerLinkActive="active-nav text-instagram-blue"
             class="nav-link justify-center lg:justify-start"

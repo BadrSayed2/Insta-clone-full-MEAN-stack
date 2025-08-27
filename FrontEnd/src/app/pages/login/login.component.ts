@@ -1,5 +1,5 @@
 import { Component } from "@angular/core";
-import { RouterLink } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 
@@ -100,8 +100,13 @@ export class LoginComponent {
     password: "",
   };
 
+  constructor(private router: Router) {}
+
   onSubmit() {
-    console.log("Login attempt:", this.formData);
-    // Add login logic here
+    // TODO: Replace with real login. On success, go to OTP verification.
+    const emailOrUser = this.formData.username.trim();
+    this.router.navigate(["/verify-code"], {
+      queryParams: { email: emailOrUser || undefined, reason: "login" },
+    });
   }
 }

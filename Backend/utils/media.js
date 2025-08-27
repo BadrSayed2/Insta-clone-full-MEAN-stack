@@ -7,7 +7,7 @@ function getImageUrl(publicId, variant = "profile", options = {}) {
       width: 200,
       height: 200,
       crop: "thumb",
-      gravity: "face",
+      gravity: "faces",
     });
   } else if (variant === "post") {
     transformation.push({ width: 1200, crop: "fill", gravity: "auto" });

@@ -1,9 +1,6 @@
 const fs = require("fs");
-const path = require("path");
-const CryptoJS = require("crypto-js");
 
 const User = require("../models/user.model");
-const OTP = require("../models/OTP.model");
 const Post = require("../models/post.model");
 const Follower = require("../models/follower.model");
 
@@ -16,20 +13,18 @@ const {
   uploadAsset,
   deleteAsset,
 } = require("../utils/media");
-// Load keys (kept as in legacy controller)
 
 const getOtherUserProfile = async (req, res, next) => {
-  const userId = req.params.id;
+  const userName = req.params.username;
   const user = await User.findOne({
-    _id: userId,
-    accessability: "public",
+    userName,
   }).select("-password -_id -email -phoneNumber -isVerified ");
   if (!user) {
     return next(new ApiError("User not found", 404));
   }
-  return res.status(200).json(ApiResponse({ data: user }));
+  return res.status(200).json(new ApiResponse({ data: user }));
 };
-
+//! get user profile
 const getProfile = async (req, res, next) => {
   const userId = req?.user?.id;
 
@@ -39,7 +34,6 @@ const getProfile = async (req, res, next) => {
 
   if (!profile) return next(new ApiError("User not found", 404));
   profile.profile_pic = profile?.profile_pic?.url || null;
-
   let userPosts = await Post.find({ userId: userId })
     .sort({ createdAt: -1 })
     .limit(10)
@@ -64,6 +58,7 @@ const getProfile = async (req, res, next) => {
     .status(200)
     .json(new ApiResponse({ data: { profile, user_posts: userPosts } }));
 };
+//! update user profile
 const updateProfile = async (req, res, next) => {
   const userId = req.user.id;
   if (!userId) return next(new ApiError("Unauthorized", 401));
