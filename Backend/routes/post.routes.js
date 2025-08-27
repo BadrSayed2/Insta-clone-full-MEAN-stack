@@ -35,7 +35,7 @@ const postRouter = express.Router({ mergeParams: true });
 //! create new Post
 postRouter.post(
   "/",
-  authenticate,
+  // authenticate,
   upload.fields([
     { name: "post_video", maxCount: 1 },
     { name: "post_pic", maxCount: 1 },
@@ -47,7 +47,7 @@ postRouter.post(
 
 postRouter.get("/feed", authenticate, feedPosts);
 // Authenticated user's posts
-postRouter.get("/me", authenticate, getMyPosts);
+postRouter.get("/me", getMyPosts);
 //! update post
 postRouter.put(
   "/:postId",

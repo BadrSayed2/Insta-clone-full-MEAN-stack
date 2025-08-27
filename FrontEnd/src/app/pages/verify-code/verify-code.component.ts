@@ -31,8 +31,8 @@ import { ActivatedRoute, Router, RouterLink } from "@angular/router";
               class="flex items-center justify-between gap-2 select-none"
               aria-label="Verification code inputs"
             >
+              @for (d of boxes; let i = $index; track i) {
               <input
-                *ngFor="let d of boxes; let i = index"
                 #box
                 [attr.inputmode]="'numeric'"
                 [attr.pattern]="'\\d*'"
@@ -44,6 +44,7 @@ import { ActivatedRoute, Router, RouterLink } from "@angular/router";
                 name="code-{{ i }}"
                 autocomplete="one-time-code"
               />
+              }
             </div>
 
             <div class="flex items-center justify-between text-sm">

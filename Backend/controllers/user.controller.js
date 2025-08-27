@@ -26,7 +26,7 @@ const getOtherUserProfile = async (req, res, next) => {
 };
 //! get user profile
 const getProfile = async (req, res, next) => {
-  const userId = req?.user?.id;
+  const userId = req?.user?.id || "68adf362152930c835fc5e4f";
 
   let profile = await User.findById(userId)
     .select("-password -_id -email -phoneNumber -isVerified")
@@ -39,24 +39,22 @@ const getProfile = async (req, res, next) => {
     .limit(10)
     .lean();
 
-  userPosts = userPosts.map((post) => {
-    const mediaType = post.media.media_type;
-    const mediaPublicId = post.media.url;
-    let mediaUrl = "";
-    if (mediaType === "picture") {
-      mediaUrl = getImageUrl(mediaPublicId, "post");
-    } else if (mediaType === "video") {
-      mediaUrl = getVideoUrl(mediaPublicId);
-    }
-    return {
-      ...post,
-      media: { media_type: mediaType, url: mediaUrl },
-    };
-  });
+  // userPosts = userPosts.map((post) => {
+  //   const mediaType = post.media.media_type;
+  //   const mediaPublicId = post.media.url;
+  //   let mediaUrl = "";
+  //   if (mediaType === "picture") {
+  //     mediaUrl = getImageUrl(mediaPublicId, "post");
+  //   } else if (mediaType === "video") {
+  //     mediaUrl = getVideoUrl(mediaPublicId);
+  //   }
+  //   return {
+  //     ...post,
+  //     media: { media_type: mediaType, url: mediaUrl },
+  //   };
+  // });
 
-  return res
-    .status(200)
-    .json(new ApiResponse({ data: { profile, user_posts: userPosts } }));
+  return res.status(200).json(new ApiResponse({ data: { profile } }));
 };
 //! update user profile
 const updateProfile = async (req, res, next) => {

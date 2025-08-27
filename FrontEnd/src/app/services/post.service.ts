@@ -1,11 +1,6 @@
-import {
-  HttpClient,
-  HttpEvent,
-  HttpRequest,
-  HttpResponse,
-} from "@angular/common/http";
+import { HttpClient, HttpResponse } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { Observable } from "rxjs";
+import { Observable, map } from "rxjs";
 export interface Post {
   id: number;
   username: string;
@@ -17,7 +12,7 @@ export interface Post {
 }
 
 export interface ApiResponse<T = any> {
-  status: string; // "success" | "error" | etc.
+  status: string;
   message: string;
   data: T | null;
 }
@@ -31,5 +26,24 @@ export class PostService {
     return this.http.post<ApiResponse>(this.apiUrl, form, {
       observe: "response",
     });
+  }
+
+  getMyPosts(): Observable<
+    Array<{
+      _id: string;
+      caption: string;
+      media: { url: string; publicId: string; media_type: "picture" | "video" };
+      userId: string;
+      commentsNumber: number;
+      likesNumber: number;
+      privacy: string;
+      createdAt: string;
+      updatedAt: string;
+      __v: number;
+    }>
+  > {
+    return this.http
+      .get<ApiResponse<any[]>>(`${this.apiUrl}/me`) //{ withCredentials: true }
+      .pipe(map((res) => res.data || []));
   }
 }

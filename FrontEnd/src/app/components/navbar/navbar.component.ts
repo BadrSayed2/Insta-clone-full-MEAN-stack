@@ -79,7 +79,7 @@ import { ThemeService } from "../../services/theme.service";
               </svg>
             </a>
             <a
-              routerLink="/profile/1"
+              [routerLink]="['/profile', currentUsername]"
               class="hover:opacity-70 transition-opacity"
             >
               <div class="w-6 h-6 bg-gray-300 rounded-full"></div>
@@ -103,8 +103,8 @@ import { ThemeService } from "../../services/theme.service";
                   ></path>
                 </svg>
               </button>
+              @if (showMenu) {
               <div
-                *ngIf="showMenu"
                 class="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-instagram-border dark:border-gray-800 py-2"
               >
                 <button
@@ -129,6 +129,7 @@ import { ThemeService } from "../../services/theme.service";
                   >Sign Up</a
                 >
               </div>
+              }
             </div>
           </div>
         </div>
@@ -138,11 +139,10 @@ import { ThemeService } from "../../services/theme.service";
 })
 export class NavbarComponent {
   showMenu = false;
+  // TODO: inject auth user service to get real username
+  currentUsername = "me";
 
-  constructor(
-    private router: Router,
-    private theme: ThemeService
-  ) {}
+  constructor(private router: Router, private theme: ThemeService) {}
 
   toggleMenu() {
     this.showMenu = !this.showMenu;

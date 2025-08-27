@@ -1,5 +1,6 @@
+import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { Observable, of, delay } from "rxjs";
+import { Observable, of, delay, map } from "rxjs";
 
 export interface UserSummary {
   id: string;
@@ -11,10 +12,32 @@ export interface UserSummary {
 
 @Injectable({ providedIn: "root" })
 export class UserService {
-  constructor() {}
+  apiUrl = `http://localhost:4000/users/me`;
+  constructor(private http: HttpClient) {}
+  // Shape returned by backend for /users/me
+  getUserProfile(): Observable<{
+    userName: string;
+    fullName: string;
+    accessability: string;
+    profile_pic: string | null;
+    bio?: string;
+    gender?: string;
+    date_of_birth?: string;
+    followCount: number;
+    followingCount: number;
+    postsCount: number;
+    createdAt: string;
+    updatedAt: string;
+  }> {
+    return this.http
+      .get<{ status: string; message: string; data: { profile: any } }>(
+        this.apiUrl
+        // { withCredentials: true }
+      )
+      .pipe(map((res) => res.data.profile || {}));
+  }
 
   getFollowers(profileId: string): Observable<UserSummary[]> {
-    // Mocked data; replace with HTTP call
     const data: UserSummary[] = [
       {
         id: "u1",
@@ -51,12 +74,6 @@ export class UserService {
         avatarUrl: "",
         isFollowing: false,
       },
-    ];
-    return of(data).pipe(delay(200));
-  }
-
-  getFollowing(profileId: string): Observable<UserSummary[]> {
-    const data: UserSummary[] = [
       {
         id: "u6",
         username: "frank",

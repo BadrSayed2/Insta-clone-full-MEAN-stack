@@ -56,7 +56,10 @@ const createPost = async (req, res, next) => {
     return next(new ApiError(req.fileValidationError, 400));
   }
 
-  const userId = req?.user?.id || "68ada9aad10408e4e01f3109";
+  const userId = req?.user?.id || "68adf362152930c835fc5e4f";
+  if (!userId) {
+    return next(new ApiError("Unauthorized", 401));
+  }
   const newPost = req?.body || {};
 
   const video =
@@ -280,7 +283,7 @@ const getUserPosts = async (req, res, next) => {
   return res.json({ posts, success: true });
 };
 const getMyPosts = async (req, res, next) => {
-  const userId = req?.user?.id;
+  const userId = req?.user?.id || "68adf362152930c835fc5e4f";
   console.log(`Fetching posts for user: ${userId}`);
   const posts = await Post.find({ userId }).sort({ createdAt: -1 }).lean();
   return res.json(new ApiResponse({ data: posts, success: true }));

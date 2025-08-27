@@ -9,11 +9,12 @@ const {
 const upload = require("../config/multer.config.js");
 const authenticate = require("../middlewares/auth-middleware.js");
 const router = express.Router();
-router.get("/me", authenticate, getProfile);
+router.get("/me", getProfile);
 router.patch("/me", authenticate, upload.single("profile"), updateProfile);
 //h1 -------
 router.get("/:username", getOtherUserProfile);
-router.get("/followers", authenticate, getFollowers);
+//! should be in follow routes
+// router.get("/followers", authenticate, getFollowers);
 router.use("/:username/posts", postRouter);
 
 module.exports = router;
