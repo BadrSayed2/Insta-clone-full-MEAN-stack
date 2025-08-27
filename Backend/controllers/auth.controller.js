@@ -107,23 +107,28 @@ const login = async (req, res, next) => {
   if (!user.isVerified) {
   emailEvent.emit("sendConfirmEmail", { email, code });
 
-  const token = generateOTPToken(String(user._id));
-  const cookieOptions = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "Strict",
-    maxAge: 5 * 60 * 1000,
-  };
-
-    
-    res.cookie("OTP_verification_token", token, cookieOptions);
-    
-    return res
-    .status(403)
-    .json(
-      new ApiResponse({ message: "please check your email", success: true })
-    );
+  return res
+  .status(403)
+  .json(
+    new ApiResponse({ message: "please check your email", success: true })
+  );
 };
+
+const token = generateOTPToken(String(user._id));
+const cookieOptions = {
+  httpOnly: true,
+  secure: true,
+  sameSite: "Strict",
+  maxAge: 5 * 60 * 1000,
+};
+
+res.cookie("OTP_verification_token", token, cookieOptions);
+return res
+.status(200)
+.json(
+  new ApiResponse({ message: "please check your email", success: true })
+);
+
 
 }
 const forgetPassword = async (req, res, next) => {

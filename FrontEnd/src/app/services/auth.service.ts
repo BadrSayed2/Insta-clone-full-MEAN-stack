@@ -21,4 +21,8 @@ export class AuthService {
   this.url = "http://localhost:4000/auth/verify_otp";
   return this.httpClient.post(this.url, userData, { withCredentials: true });
 }
+  resetPassword(token: string, newPassword: string){
+      this.url = `http://localhost:4000/auth/reset-password?token=${token}`;
+      return this.httpClient.post(this.url,{ newPassword },{ withCredentials: true } );
+    }
 }
