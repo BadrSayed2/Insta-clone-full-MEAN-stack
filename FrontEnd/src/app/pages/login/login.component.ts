@@ -124,14 +124,22 @@ export class LoginComponent {
   onSubmit() {
     if (this.loginForm.invalid) return;
 
-    console.log("Login attempt:", this.loginForm.value);
-
     this.loginApi.loginUser(this.loginForm.value).subscribe({
-  next: (res: any) => {
-      this.router.navigate(['/home']); 
-  },
-  error: (err) => console.error("Login error:", err)
-});
-  
-}
+      next: (res: any) => {
+        alert("Login successful.");
+        this.router.navigate(['/home']);
+      },
+      error: (err) => {
+        if (err.status === 403) {
+          alert("Please verify your email before logging in.");
+          this.router.navigate(['/verify-code']);
+        } else if (err.status === 400) {
+          alert("Invalid email or password.");
+        } else {
+          alert("An unexpected error occurred. Please try again.");
+        }
+      }
+    });
+  }
+
 }

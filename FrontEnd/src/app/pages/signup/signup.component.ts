@@ -104,16 +104,31 @@ export class SignupComponent {
   }
 
   onSubmit() {
-    if (this.signupForm.valid) {
-      console.log("📦 Data to send:", this.signupForm.value);
-      this.postApi.addUser(this.signupForm.value).subscribe({
-        next: (data) => {
-            console.log("✅ Response:", data);
-            this.router.navigate(['/verify-code']);
-          },
-        error: (err) => console.error("❌ Error:", err),
-        complete: () => console.log("🎉 Completed"),
-      });
-    }
+  if (this.signupForm.valid) {
+    console.log("Data to send:", this.signupForm.value);
+
+    this.postApi.addUser(this.signupForm.value).subscribe({
+      next: (data: any) => {
+        console.log("Response:", data);
+
+        alert("Account created successfully. Please check your email for verification.");
+        this.router.navigate(['/verify-code']);
+      },
+      error: (err) => {
+        console.error("Error:", err);
+
+        if (err.status === 400) {
+          alert("Password and confirmation do not match.");
+        } else if (err.status === 409) {
+          alert("This email is already registered.");
+        } else {
+          alert("An unexpected error occurred. Please try again.");
+        }
+      },
+      complete: () => console.log("Completed"),
+    });
   }
+}
+
+
 }

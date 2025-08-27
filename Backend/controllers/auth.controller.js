@@ -89,9 +89,7 @@ const login = async (req, res, next) => {
 
   const user = await User.findOne({ email });
 
-    if (!user.isVerified) {
-    return next(new ApiError("Email is not verified. Please verify your email first.", 403));
-  }
+
 
   if (!user) {
     return next(new ApiError("in-valid login Data", 400));
@@ -106,6 +104,7 @@ const login = async (req, res, next) => {
   const code = generateCode();
   await OTP.create({ userId: user._id, code });
 
+  if (!user.isVerified) {
   emailEvent.emit("sendConfirmEmail", { email, code });
 
   const token = generateOTPToken(String(user._id));
@@ -116,21 +115,23 @@ const login = async (req, res, next) => {
     maxAge: 5 * 60 * 1000,
   };
 
-  res.cookie("OTP_verification_token", token, cookieOptions);
-
-  return res
-    .status(200)
+    
+    res.cookie("OTP_verification_token", token, cookieOptions);
+    
+    return res
+    .status(403)
     .json(
       new ApiResponse({ message: "please check your email", success: true })
     );
 };
 
+}
 const forgetPassword = async (req, res, next) => {
   const email = req.body.email;
   const user = await User.findOne({ email });
   if (!user)
     return next(
-      new ApiError("if Email exists activation link will be sent", 404)
+  new ApiError("if Email exists activation link will be sent", 404)
     );
   const resetToken = crypto.randomBytes(32).toString("hex");
   const hashedToken = crypto
