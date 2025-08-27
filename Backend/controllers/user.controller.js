@@ -1,4 +1,5 @@
 const fs = require("fs");
+const CryptoJS = require("crypto-js");
 
 const User = require("../models/user.model");
 const Post = require("../models/post.model");
@@ -29,11 +30,22 @@ const getProfile = async (req, res, next) => {
   const userId = req?.user?.id || "68adf362152930c835fc5e4f";
 
   let profile = await User.findById(userId)
-    .select("-password -_id -email -phoneNumber -isVerified")
+    .select("-password -_id  -isVerified")
     .lean();
 
   if (!profile) return next(new ApiError("User not found", 404));
   profile.profile_pic = profile?.profile_pic?.url || null;
+  // Decrypt phone number if present
+  if (profile.phoneNumber) {
+    try {
+      const decrypted = CryptoJS.AES.decrypt(
+        profile.phoneNumber,
+        process.env.ENCRYPT
+      ).toString(CryptoJS.enc.Utf8);
+      // Use decrypted only if it yields a non-empty string
+      if (decrypted) profile.phoneNumber = decrypted;
+    } catch {}
+  }
   let userPosts = await Post.find({ userId: userId })
     .sort({ createdAt: -1 })
     .limit(10)
@@ -58,18 +70,28 @@ const getProfile = async (req, res, next) => {
 };
 //! update user profile
 const updateProfile = async (req, res, next) => {
-  const userId = req.user.id;
+  const userId = req?.user?.id || "68adf362152930c835fc5e4f";
   if (!userId) return next(new ApiError("Unauthorized", 401));
 
   const { userName, fullName, bio, gender, accessability, phoneNumber } =
     req.body || {};
+  // If phoneNumber is provided, encrypt it before saving
+  let encryptedPhone;
+  if (phoneNumber) {
+    try {
+      encryptedPhone = CryptoJS.AES.encrypt(
+        phoneNumber,
+        process.env.ENCRYPT
+      ).toString();
+    } catch {}
+  }
   const updates = {
     ...(userName && { userName }),
     ...(fullName && { fullName }),
     ...(bio && { bio }),
     ...(gender && { gender }),
     ...(accessability && { accessability }),
-    ...(phoneNumber && { phoneNumber }),
+    ...(encryptedPhone && { phoneNumber: encryptedPhone }),
   };
 
   // Handle multer filter error (wrong file type/size)

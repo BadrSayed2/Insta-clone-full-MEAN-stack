@@ -23,6 +23,8 @@ export class UserService {
     bio?: string;
     gender?: string;
     date_of_birth?: string;
+    email?: string;
+    phoneNumber?: string;
     followCount: number;
     followingCount: number;
     postsCount: number;
@@ -111,5 +113,20 @@ export class UserService {
       },
     ];
     return of(data).pipe(delay(200));
+  }
+
+  getFollowing(profileId: string): Observable<UserSummary[]> {
+    // For now return same mock as followers; replace with API when available
+    return this.getFollowers(profileId).pipe(delay(150));
+  }
+
+  updateUserProfile(payload: {
+    fullName?: string;
+    userName?: string;
+    bio?: string;
+    profile_pic?: string | null;
+  }): Observable<any> {
+    // Assuming PATCH to /users/me updates profile
+    return this.http.patch(this.apiUrl, payload);
   }
 }

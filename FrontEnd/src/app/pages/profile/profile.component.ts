@@ -157,7 +157,7 @@ export class ProfileComponent implements OnInit {
   private loadFollowing() {
     const profileId = this.profile.username; // or route param id
     this.userService
-      .getFollowers(profileId)
+      .getFollowing(profileId)
       .subscribe((users: UserSummary[]) => {
         this.following = users;
       });
