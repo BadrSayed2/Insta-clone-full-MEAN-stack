@@ -34,7 +34,7 @@ export const routes: Routes = [
       ),
   },
   {
-    path: "post/:id",
+    path: "post/",
     loadComponent: () =>
       import("./pages/post-detail/post-detail.component").then(
         (m) => m.PostDetailComponent

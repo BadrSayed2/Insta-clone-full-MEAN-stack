@@ -19,6 +19,8 @@ postRouter.post("/comment/:postId", authenticate, postController.commentPost);
 
 postRouter.get("/feed", authenticate, postController.feedPosts);
 
+postRouter.get("/comment/:postId", authenticate ,postController.get_comments)
+
 postRouter.put(
   "/:postId",
   authenticate,

@@ -25,6 +25,7 @@ postController.getUserPosts = async (req, res, next) => {
   return res.status(200).json(new ApiResponse({ posts }));
 };
 
+
 postController.deletePost = async (req, res, next) => {
   const postId = req.params.id;
   const post = await Post.findById(postId);
@@ -154,6 +155,25 @@ postController.updatePostHandler = async (req, res, next) => {
 
   return res.json({ message: "post updated successfully", success: true });
 };
+
+postController.get_comments = async(req,res,next)=>{
+  try{
+    const user_id = req?.user?.id
+    const post_id = req.params.postId
+    if(!post_id){
+      return res.status(404).json({err : "post not found" , success : false})
+    }
+    const comments = await Comment.find({postId : post_id}).populate({
+      path: "userId",
+      select: "userName fullName profile_pic accessabilty",
+    }).lean()
+    res.json({comments , success : true})
+  }catch(e){
+    console.log(e.message);
+    res.status(500).json({err : "server error" , success : true})
+    
+  }
+}
 
 postController.commentPost = async (req, res, next) => {
   const userId = req?.user?.id;
