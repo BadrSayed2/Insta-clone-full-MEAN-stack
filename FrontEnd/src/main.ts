@@ -5,6 +5,7 @@ import { Router, RouterOutlet } from "@angular/router";
 import { routes } from "./app/app.routes";
 import { SidebarComponent } from "./app/components/sidebar/sidebar.component";
 import { NgIf } from "@angular/common";
+import { provideHttpClient } from "@angular/common/http";
 
 @Component({
   selector: "app-root",
@@ -35,5 +36,5 @@ export class App {
 }
 
 bootstrapApplication(App, {
-  providers: [provideRouter(routes)],
+  providers: [provideRouter(routes) , provideHttpClient() ],
 });

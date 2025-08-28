@@ -10,24 +10,26 @@ const {
   getImageUrl,
   getVideoUrl,
 } = require("../utils/media");
-
-const postController = {};
-
 const ApiResponse = require("../utils/api-response");
 const ApiError = require("../utils/api-error");
-
-postController.getUserPosts = async (req, res, next) => {
-  const userId = req.params.id;
-  const posts = await Post.find({ userId: userId }).sort({ createdAt: -1 });
-  if (!posts.length) {
-    return next(new ApiError("No posts found for this user", 404));
+//! @desc    Get a post by ID
+// @route   GET /posts/:postId
+// @access  private/user
+const getPost = async (req, res, next) => {
+  const postId = req.params.postId;
+  const post = await Post.findById(postId).select("-__v");
+  if (!post) {
+    return next(new ApiError("No post found with this ID", 404));
   }
-  return res.status(200).json(new ApiResponse({ posts }));
+  return res
+    .status(200)
+    .json(
+      new ApiResponse({ data: post, message: "Post retrieved successfully" })
+    );
 };
 
-
-postController.deletePost = async (req, res, next) => {
-  const postId = req.params.id;
+const deletePost = async (req, res, next) => {
+  const postId = req.params.postId;
   const post = await Post.findById(postId);
   if (!post) {
     return next(new ApiError("Post not found", 404));
@@ -38,13 +40,18 @@ postController.deletePost = async (req, res, next) => {
       new ApiError("You are not authorized to delete this post", 403)
     );
   }
-  await post.remove();
+  try {
+    if (post.media?.publicId) {
+      await deleteAsset(post.media.publicId, post.media.media_type);
+    }
+  } catch {}
+  await post.deleteOne();
   return res
     .status(200)
     .json(new ApiResponse({ message: "Post deleted successfully" }));
 };
 
-postController.addPostHandler = async (req, res, next) => {
+const createPost = async (req, res, next) => {
   if (req.fileValidationError) {
     return next(new ApiError(req.fileValidationError, 400));
   }
@@ -78,15 +85,21 @@ postController.addPostHandler = async (req, res, next) => {
   }
 
   const mediaPath = path.join(...mediaPathArr);
-  const result = await uploadAsset(mediaPath, cloudinaryPath, mediaType);
-  if (!result) {
+  const publicId = await uploadAsset(mediaPath, cloudinaryPath, mediaType);
+  const imageUrl =
+    mediaType === "picture"
+      ? getImageUrl(publicId, "post")
+      : getVideoUrl(publicId);
+  if (!publicId) {
     return next(new ApiError("Could not upload your file", 400));
   }
 
-  newPost.media = { url: result, media_type: mediaType };
+  newPost.media = {
+    url: imageUrl,
+    media_type: mediaType,
+    publicId: publicId,
+  };
   newPost.userId = userId;
-
-  console.log(newPost);
 
   await Post.create({ ...newPost });
 
@@ -96,7 +109,7 @@ postController.addPostHandler = async (req, res, next) => {
 };
 
 // Update Post
-postController.updatePostHandler = async (req, res, next) => {
+const updatePostHandler = async (req, res, next) => {
   if (req.fileValidationError) {
     return next(new ApiError(req.fileValidationError, 400));
   }
@@ -104,8 +117,10 @@ postController.updatePostHandler = async (req, res, next) => {
   const userId = req.user?.id;
   const newPost = req?.body;
 
-  const video = req.files["post_video"] ? req.files["post_video"][0] : null;
-  const pic = req.files["post_pic"] ? req.files["post_pic"][0] : null;
+  const video =
+    req.files && req.files["post_video"] ? req.files["post_video"][0] : null;
+  const pic =
+    req.files && req.files["post_pic"] ? req.files["post_pic"][0] : null;
   let mediaPathArr = ["uploads"];
   let mediaType = "";
   let cloudinaryPath = "";
@@ -120,7 +135,18 @@ postController.updatePostHandler = async (req, res, next) => {
     return next(new ApiError("this is not your post", 401));
   }
   if (!pic && !video) {
-    return next(new ApiError("you must upload a picture or a video", 400));
+    // Allow caption-only update
+    if (typeof newPost?.caption === "string") {
+      foundPost.caption = newPost.caption;
+      await foundPost.save();
+      return res.json({ message: "post updated successfully", success: true });
+    }
+    return next(
+      new ApiError(
+        "you must upload a picture or a video or provide a caption",
+        400
+      )
+    );
   } else if (pic) {
     mediaPathArr.push("post_pics");
     mediaPathArr.push(pic.filename);
@@ -132,22 +158,25 @@ postController.updatePostHandler = async (req, res, next) => {
     mediaType = "video";
     cloudinaryPath = "post_videos";
   }
-
   if (pic || video) {
     const mediaPath = path.join(...mediaPathArr);
-
-    const deleteResult = await deleteAsset(foundPost.media.url, mediaType);
-    if (!deleteResult) {
-      return next(new ApiError("could not upload your file", 400));
-    }
-    const result = await uploadAsset(mediaPath, cloudinaryPath, mediaType);
-
-    if (!result) {
+    // Best-effort delete of previous asset using its publicId
+    try {
+      if (foundPost?.media?.publicId) {
+        await deleteAsset(foundPost.media.publicId, mediaType);
+      }
+    } catch (e) {}
+    const newPublicId = await uploadAsset(mediaPath, cloudinaryPath, mediaType);
+    if (!newPublicId) {
       return next(new ApiError("could not upload your file", 400));
     }
     foundPost.media = {
-      url: result,
+      url:
+        mediaType === "picture"
+          ? getImageUrl(newPublicId, "post")
+          : getVideoUrl(newPublicId),
       media_type: mediaType,
+      publicId: newPublicId,
     };
   }
   foundPost.caption = newPost.caption;
@@ -156,7 +185,8 @@ postController.updatePostHandler = async (req, res, next) => {
   return res.json({ message: "post updated successfully", success: true });
 };
 
-postController.get_comments = async(req,res,next)=>{
+
+const get_comments = async(req,res,next)=>{
   try{
     const user_id = req?.user?.id
     const post_id = req.params.postId
@@ -175,7 +205,8 @@ postController.get_comments = async(req,res,next)=>{
   }
 }
 
-postController.commentPost = async (req, res, next) => {
+const commentPost = async (req, res, next) => {
+
   const userId = req?.user?.id;
   const postId = req?.params?.postId;
   const comment = req?.body?.comment;
@@ -203,7 +234,7 @@ postController.commentPost = async (req, res, next) => {
     .json({ message: "comment is created successfully", success: true });
 };
 
-postController.feedPosts = async (req, res, next) => {
+const feedPosts = async (req, res, next) => {
   const userId = req?.user?.id;
   const offset = req?.query?.limit || 0;
   const following = await Follower.find({ user: userId }).select(
@@ -222,15 +253,54 @@ postController.feedPosts = async (req, res, next) => {
     })
     .lean();
   const posts = db_posts.map((post) => {
-    if (post.media.media_type == "picture") {
-      post.media.url = getImageUrl(post?.media?.url);
-    } else if (post.media.media_type == "video") {
-      post.media.url = getVideoUrl(post?.media?.url);
-    } else {
+    const hasHttpUrl =
+      typeof post?.media?.url === "string" && post.media.url.startsWith("http");
+    if (!hasHttpUrl) {
+      const pid = post?.media?.publicId || post?.media?.url;
+      if (post.media.media_type === "picture") {
+        post.media.url = getImageUrl(pid);
+      } else if (post.media.media_type === "video") {
+        post.media.url = getVideoUrl(pid);
+      }
     }
     return post;
   });
   return res.json({ posts, success: true });
 };
 
-module.exports = postController;
+// Get posts for a specific user (supports nested /users/:userId/posts)
+const getUserPosts = async (req, res, next) => {
+  const userIdParam = req.params.userId || req.params.id;
+  if (!userIdParam) return next(new ApiError("User id is required", 400));
+  const offset = Number(req?.query?.offset || 0);
+  const db_posts = await Post.find({ userId: userIdParam })
+    .sort({ createdAt: -1 })
+    .skip(offset * 15)
+    .limit(15)
+    .lean();
+  const posts = db_posts.map((post) => {
+    const hasHttpUrl =
+      typeof post?.media?.url === "string" && post.media.url.startsWith("http");
+    if (!hasHttpUrl) {
+      const pid = post?.media?.publicId || post?.media?.url;
+      if (post.media.media_type === "picture") {
+        post.media.url = getImageUrl(pid, "post");
+      } else if (post.media.media_type === "video") {
+        post.media.url = getVideoUrl(pid);
+      }
+    }
+    return post;
+  });
+  return res.json({ posts, success: true });
+};
+
+module.exports = {
+  deletePost,
+  createPost,
+  updatePostHandler,
+  commentPost,
+  feedPosts,
+  getPost,
+  getUserPosts,
+  get_comments
+};

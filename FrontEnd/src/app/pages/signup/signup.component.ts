@@ -1,120 +1,72 @@
-import { Component } from "@angular/core";
-import { RouterLink } from "@angular/router";
+import { Component, inject } from "@angular/core";
+import { FormBuilder, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from "@angular/forms";
 import { CommonModule } from "@angular/common";
-import { FormsModule } from "@angular/forms";
+import { Router, RouterLink } from "@angular/router";
+import { AuthService } from "app/services/auth.service";
 
 @Component({
   selector: "app-signup",
   standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule],
+  imports: [ReactiveFormsModule, CommonModule, RouterLink],
   template: `
     <div class="min-h-screen flex items-center justify-center">
-      <div class="max-w-md w-full space-y-8 p-8">
-        <!-- Logo -->
-        <div class="text-center">
-          <h1 class="text-4xl font-bold mb-4">Instagram</h1>
-          <p class="text-instagram-gray text-sm font-semibold mb-8">
-            Sign up to see photos and videos from your friends.
-          </p>
-        </div>
+      <div class="max-w-lg w-full space-y-6 p-8 bg-white rounded-lg shadow">
+        <h2 class="text-3xl font-bold text-center">Sign Up</h2>
 
-        <!-- Sign Up Form -->
-        <div
-          class="bg-white dark:bg-gray-900 border border-instagram-border dark:border-gray-800 rounded-lg p-8"
-        >
-          <button
-            class="w-full flex items-center justify-center space-x-2 text-white bg-instagram-blue hover:bg-blue-600 transition-colors py-2 rounded-lg font-semibold mb-4"
-          >
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-              <path
-                d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
-              />
-            </svg>
-            <span>Log in with Facebook</span>
-          </button>
+        <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="space-y-4">
 
-          <div class="flex items-center my-6">
-            <div
-              class="flex-1 border-t border-instagram-border dark:border-gray-800"
-            ></div>
-            <span class="px-4 text-sm text-instagram-gray dark:text-gray-400"
-              >OR</span
-            >
-            <div
-              class="flex-1 border-t border-instagram-border dark:border-gray-800"
-            ></div>
+          <input type="text" formControlName="userName" placeholder="Username" class="input-field" />
+          <div *ngIf="signupForm.get('userName')?.invalid && signupForm.get('userName')?.touched" class="text-red-500 text-sm">
+            Username is required (min 3 chars)
           </div>
 
-          <form class="space-y-4" (ngSubmit)="onSubmit()">
-            <div>
-              <input
-                type="email"
-                [(ngModel)]="formData.email"
-                name="email"
-                placeholder="Email"
-                class="input-field"
-                required
-              />
-            </div>
-            <div>
-              <input
-                type="text"
-                [(ngModel)]="formData.fullName"
-                name="fullName"
-                placeholder="Full Name"
-                class="input-field"
-                required
-              />
-            </div>
-            <div>
-              <input
-                type="text"
-                [(ngModel)]="formData.username"
-                name="username"
-                placeholder="Username"
-                class="input-field"
-                required
-              />
-            </div>
-            <div>
-              <input
-                type="password"
-                [(ngModel)]="formData.password"
-                name="password"
-                placeholder="Password"
-                class="input-field"
-                required
-              />
-            </div>
-            <div class="text-xs text-instagram-gray">
-              <p class="mb-2">
-                People who use our service may have uploaded your contact
-                information to Instagram.
-                <a href="#" class="text-instagram-blue">Learn More</a>
-              </p>
-              <p>
-                By signing up, you agree to our
-                <a href="#" class="text-instagram-blue">Terms</a> ,
-                <a href="#" class="text-instagram-blue">Privacy Policy</a> and
-                <a href="#" class="text-instagram-blue">Cookies Policy</a>.
-              </p>
-            </div>
-            <button type="submit" class="w-full btn-primary">Sign up</button>
-          </form>
-        </div>
+          <input type="text" formControlName="fullName" placeholder="Full Name" class="input-field" />
+          <div *ngIf="signupForm.get('fullName')?.invalid && signupForm.get('fullName')?.touched" class="text-red-500 text-sm">
+            Full Name is required (min 3 chars)
+          </div>
 
-        <!-- Login Link -->
-        <div
-          class="bg-white dark:bg-gray-900 border border-instagram-border dark:border-gray-800 rounded-lg p-4 text-center"
-        >
+          <input type="email" formControlName="email" placeholder="Email" class="input-field" />
+          <div *ngIf="signupForm.get('email')?.invalid && signupForm.get('email')?.touched" class="text-red-500 text-sm">
+            Valid email is required
+          </div>
+
+          <input type="password" formControlName="password" placeholder="Password" class="input-field" />
+          <div *ngIf="signupForm.get('password')?.invalid && signupForm.get('password')?.touched" class="text-red-500 text-sm">
+            Password must be at least 6 characters
+          </div>
+
+          <input type="password" formControlName="confirmationPassword" placeholder="Confirm Password" class="input-field" />
+          <div *ngIf="signupForm.hasError('passwordMismatch') && signupForm.get('confirmationPassword')?.touched" class="text-red-500 text-sm">
+            Passwords do not match
+          </div>
+
+          <input type="text" formControlName="phoneNumber" placeholder="Phone Number" class="input-field" />
+          <div *ngIf="signupForm.get('phoneNumber')?.invalid && signupForm.get('phoneNumber')?.touched" class="text-red-500 text-sm">
+            Phone number is required
+          </div>
+
+          <!-- Gender -->
+          <select formControlName="gender" class="input-field">
+            <option value="" disabled>Select Gender</option>
+            <option *ngFor="let g of genders" [value]="g">{{ g }}</option>
+          </select>
+
+          <!-- Accessability -->
+          <select formControlName="accessabilty" class="input-field">
+            <option *ngFor="let a of accessOptions" [value]="a">{{ a }}</option>
+          </select>
+
+          <textarea formControlName="bio" placeholder="Write your bio..." class="input-field"></textarea>
+
+          <input type="date" formControlName="DOB" class="input-field" />
+
+          <button type="submit" class="w-full btn-primary" [disabled]="signupForm.invalid">Sign Up</button>
+        </form>
+
+        <div class="text-center">
           <p class="text-sm">
-            Have an account?
-            <a
-              routerLink="/login"
-              class="text-instagram-blue font-semibold hover:underline"
-            >
-              Log in
-            </a>
+            Already have an account?
+            <a routerLink="/login" class="text-blue-600 font-semibold hover:underline">Login</a>
           </p>
         </div>
       </div>
@@ -122,15 +74,61 @@ import { FormsModule } from "@angular/forms";
   `,
 })
 export class SignupComponent {
-  formData = {
-    email: "",
-    fullName: "",
-    username: "",
-    password: "",
-  };
+  genders = ["male", "female"];
+  accessOptions = ["public", "private"];
+
+  private router = inject(Router);
+  private fb = inject(FormBuilder);
+  private postApi = inject(AuthService);
+
+  signupForm = this.fb.group(
+    {
+      userName: ["", [Validators.required, Validators.minLength(3)]],
+      fullName: ["", [Validators.required, Validators.minLength(3)]],
+      email: ["", [Validators.required, Validators.email]],
+      password: ["", [Validators.required, Validators.minLength(6)]],
+      confirmationPassword: ["", Validators.required],
+      phoneNumber: ["", [Validators.required, Validators.pattern(/^\+?[0-9]{10,15}$/)]],
+      gender: ["", Validators.required],
+      accessabilty: ["public", Validators.required],
+      bio: [""],
+      DOB: ["", Validators.required],
+    },
+    { validators: this.passwordMatchValidator }
+  );
+
+  passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
+    const password = control.get("password")?.value;
+    const confirm = control.get("confirmationPassword")?.value;
+    return password === confirm ? null : { passwordMismatch: true };
+  }
 
   onSubmit() {
-    console.log("Signup attempt:", this.formData);
-    // Add signup logic here
+  if (this.signupForm.valid) {
+    console.log("Data to send:", this.signupForm.value);
+
+    this.postApi.addUser(this.signupForm.value).subscribe({
+      next: (data: any) => {
+        console.log("Response:", data);
+
+        alert("Account created successfully. Please check your email for verification.");
+        this.router.navigate(['/verify-code']);
+      },
+      error: (err) => {
+        console.error("Error:", err);
+
+        if (err.status === 400) {
+          alert("Password and confirmation do not match.");
+        } else if (err.status === 409) {
+          alert("This email is already registered.");
+        } else {
+          alert("An unexpected error occurred. Please try again.");
+        }
+      },
+      complete: () => console.log("Completed"),
+    });
   }
+}
+
+
 }

@@ -5,6 +5,7 @@ const post_schema = new mongoose.Schema(
     caption: String,
     media: {
       url: String,
+      publicId: String,
       media_type: {
         type: String,
         enum: ["video", "picture"],

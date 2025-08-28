@@ -1,7 +1,6 @@
 const express = require("express");
 const {
   getOtherUserProfile,
-  getUserPosts,
   getProfile,
   getFollowers,
   updateProfile,
@@ -15,9 +14,6 @@ router.get("/", authenticate, getProfile);
 router.get("/followers", authenticate, getFollowers);
 router.get("/:id", getOtherUserProfile);
 
-// Public user info + posts (from previous user.router.js)
-
-router.get("/:id/posts", getUserPosts);
 router.patch("/", authenticate, upload.single("profile"), updateProfile);
 
 module.exports = router;

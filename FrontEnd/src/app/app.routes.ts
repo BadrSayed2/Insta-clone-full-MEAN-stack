@@ -19,6 +19,13 @@ export const routes: Routes = [
       import("./pages/signup/signup.component").then((m) => m.SignupComponent),
   },
   {
+    path: "verify-code",
+    loadComponent: () =>
+      import("./pages/verify-code/verify-code.component").then(
+        (m) => m.VerifyCodeComponent
+      ),
+  },
+  {
     path: "forgot-password",
     loadComponent: () =>
       import("./pages/forgot-password/forgot-password.component").then(
