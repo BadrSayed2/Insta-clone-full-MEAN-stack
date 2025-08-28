@@ -144,7 +144,7 @@ const forgetPassword = async (req, res, next) => {
   user.passwordResetToken = hashedToken;
   user.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
   await user.save();
-  const resetUrl = `${process.env.API_BASE_URL}/auth/reset-password?token=${resetToken}`;
+  const resetUrl = `${process.env.API_BASE_URL}/reset-password?token=${resetToken}`;
   logger.info(`Password reset URL: ${resetUrl}`);
   //send email
   emailEvent.emit("sendResetPasswordEmail", { email, resetUrl });
