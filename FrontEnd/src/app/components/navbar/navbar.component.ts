@@ -139,7 +139,6 @@ import { ThemeService } from "../../services/theme.service";
 })
 export class NavbarComponent {
   showMenu = false;
-  // TODO: inject auth user service to get real username
   currentUsername = "me";
 
   constructor(private router: Router, private theme: ThemeService) {}

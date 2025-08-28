@@ -16,6 +16,7 @@ export class SettingsComponent implements OnInit {
   saving = false;
   saveMessage = "";
   profilePicUrl = "";
+  profilePicFile: File | null = null;
 
   settingsSections = [
     {
@@ -103,21 +104,44 @@ export class SettingsComponent implements OnInit {
   submitProfile() {
     this.saving = true;
     this.saveMessage = "";
-    const payload = {
-      fullName: this.profileData.name,
-      userName: this.profileData.username,
-      bio: this.profileData.bio,
-      email: this.profileData.email,
-      phoneNumber: this.profileData.phone,
-    } as any;
+    // Build multipart/form-data so backend can handle optional image at key 'profile'
+    const form = new FormData();
+    if (this.profilePicFile) {
+      form.append("profile", this.profilePicFile);
+    }
+    if (this.profileData.name) form.append("fullName", this.profileData.name);
+    if (this.profileData.username)
+      form.append("userName", this.profileData.username);
+    if (this.profileData.bio) form.append("bio", this.profileData.bio);
+    if (this.profileData.phone)
+      form.append("phoneNumber", this.profileData.phone);
+    // Note: email is not updated by backend controller; skipped
 
-    this.userService.updateUserProfile(payload).subscribe({
-      next: () => (this.saveMessage = "Profile updated"),
+    this.userService.updateUserProfile(form).subscribe({
+      next: (res: any) => {
+        this.saveMessage = "Profile updated";
+        const updated = res?.user;
+        const pic = updated?.profile_pic;
+        // Handle string or object shape
+        this.profilePicUrl =
+          typeof pic === "string" ? pic : pic?.url || this.profilePicUrl;
+      },
       error: (e: any) => {
         console.error("Update profile failed", e);
         this.saveMessage = "Update failed";
       },
       complete: () => (this.saving = false),
     });
+  }
+
+  onProfileFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files && input.files[0];
+    if (!file) return;
+    this.profilePicFile = file;
+    // Preview selected image
+    const reader = new FileReader();
+    reader.onload = () => (this.profilePicUrl = reader.result as string);
+    reader.readAsDataURL(file);
   }
 }

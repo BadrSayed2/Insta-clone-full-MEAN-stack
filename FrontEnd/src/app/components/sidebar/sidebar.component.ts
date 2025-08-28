@@ -76,12 +76,10 @@ export class SidebarComponent implements OnInit {
     // Load the logged-in user's profile to display avatar and username in the sidebar
     this.userService.getUserProfile().subscribe({
       next: (profile) => {
-        // Backend returns { userName, profile_pic, ... }
         this.currentUsername = profile?.userName || this.currentUsername;
         this.avatarUrl = profile?.profile_pic || undefined;
       },
       error: () => {
-        // Keep defaults if not authenticated or request fails
         this.avatarUrl = undefined;
       },
     });

@@ -61,11 +61,18 @@
               </div>
               <div>
                 <h4 class="font-semibold">{{ profileData.username }}</h4>
-                <button
-                  class="text-instagram-blue text-sm font-semibold hover:text-blue-600"
+                <label
+                  for="profileFile"
+                  class="text-instagram-blue text-sm font-semibold hover:text-blue-600 cursor-pointer"
+                  >Change profile photo</label
                 >
-                  Change profile photo
-                </button>
+                <input
+                  id="profileFile"
+                  type="file"
+                  accept="image/*"
+                  class="hidden"
+                  (change)="onProfileFileSelected($event)"
+                />
               </div>
             </div>
 

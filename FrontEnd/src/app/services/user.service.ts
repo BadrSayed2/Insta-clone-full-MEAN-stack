@@ -135,13 +135,16 @@ export class UserService {
     return this.getFollowers(profileId).pipe(delay(150));
   }
 
-  updateUserProfile(payload: {
-    fullName?: string;
-    userName?: string;
-    bio?: string;
-    profile_pic?: string | null;
-  }): Observable<any> {
-    // Assuming PATCH to /users/me updates profile
+  updateUserProfile(
+    payload:
+      | FormData
+      | {
+          fullName?: string;
+          userName?: string;
+          bio?: string;
+          profile_pic?: string | null;
+        }
+  ): Observable<any> {
     return this.http.patch(this.apiUrl, payload);
   }
 }
