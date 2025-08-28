@@ -89,7 +89,9 @@ const login = async (req, res, next) => {
 
   const user = await User.findOne({ email });
 
-  if (!user || !user.isVerified) {
+
+
+  if (!user) {
     return next(new ApiError("in-valid login Data", 400));
   }
 
@@ -97,12 +99,17 @@ const login = async (req, res, next) => {
 
   if (!match) {
     return next(new ApiError("in-valid login Data", 400));
+    
   }
 
   const code = generateCode();
   await OTP.create({ userId: user._id, code });
 
   emailEvent.emit("sendConfirmEmail", { email, code });
+  
+  if (!user.isVerified) {
+    return next(new ApiError("in-valid login Data", 400));
+  };
 
   const token = generateOTPToken(String(user._id));
   const cookieOptions = {
@@ -113,13 +120,14 @@ const login = async (req, res, next) => {
   };
 
   res.cookie("OTP_verification_token", token, cookieOptions);
-
   return res
     .status(200)
     .json(
       new ApiResponse({ message: "please check your email", success: true })
     );
-};
+
+
+}
 
 const forgetPassword = async (req, res, next) => {
   const email = req.body.email;
@@ -136,7 +144,7 @@ const forgetPassword = async (req, res, next) => {
   user.passwordResetToken = hashedToken;
   user.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
   await user.save();
-  const resetUrl = `${process.env.API_BASE_URL}/auth/reset-password?token=${resetToken}`;
+  const resetUrl = `${process.env.API_BASE_URL}/reset-password?token=${resetToken}`;
   logger.info(`Password reset URL: ${resetUrl}`);
   //send email
   emailEvent.emit("sendResetPasswordEmail", { email, resetUrl });
@@ -173,6 +181,7 @@ const resetPassword = async (req, res, next) => {
 const verifyOtp = async (req, res, next) => {
   const token = req?.cookies?.["OTP_verification_token"]; // contains user id
   const code = String(req?.body?.code ?? "").trim();
+
   if (!token) {
     return next(new ApiError("you need to login", 401));
   }
@@ -188,6 +197,7 @@ const verifyOtp = async (req, res, next) => {
   }
 
   const otpDoc = await OTP.findOne({ userId: user._id, code });
+
   if (otpDoc) {
     if (!user?.isVerified) {
       user.isVerified = true;

@@ -1,9 +1,14 @@
 import { Routes } from "@angular/router";
+
 //! we use loadComponent for lazy loading
 //? you can use instant loading but for only common components that are used frequently
+
+import { authGuard } from "./auth-guard";
+
 export const routes: Routes = [
   {
     path: "",
+    canActivate : [authGuard],
     loadComponent: () =>
       import("./pages/home/home.component").then((m) => m.HomeComponent),
   },
@@ -18,28 +23,41 @@ export const routes: Routes = [
       import("./pages/signup/signup.component").then((m) => m.SignupComponent),
   },
   {
+    path: "verify-code",
+    loadComponent: () =>
+      import("./pages/verify_otp/verify-otp").then(
+        (m) => m.VerifyOtp
+      ),
+  },
+  {
     path: "forgot-password",
     loadComponent: () =>
       import("./pages/forgot-password/forgot-password.component").then(
         (m) => m.ForgotPasswordComponent
       ),
   },
+  
   {
-    path: "verify-code",
+
+
+    path: "reset-password",
     loadComponent: () =>
-      import("./pages/verify-code/verify-code.component").then(
-        (m) => m.VerifyCodeComponent
+      import("./pages/reset-password/reset-password.component").then(
+        (m) => m.ResetPasswordComponent
       ),
   },
   {
     path: "profile/:username",
+    canActivate : [authGuard],
+
     loadComponent: () =>
       import("./pages/profile/profile.component").then(
         (m) => m.ProfileComponent
       ),
   },
   {
-    path: "post/:id",
+    path: "post-details/:id",
+    canActivate : [authGuard],
     loadComponent: () =>
       import("./pages/post-detail/post-detail.component").then(
         (m) => m.PostDetailComponent

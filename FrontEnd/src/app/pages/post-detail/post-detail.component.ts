@@ -1,198 +1,27 @@
 import { Component, OnInit } from "@angular/core";
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { CommonModule } from "@angular/common";
-import { RouterLink } from "@angular/router";
 import { FormsModule } from "@angular/forms";
 import {
   CommentComponent,
   Comment,
 } from "../../components/comment/comment.component";
+import { PostService } from "app/services/post-service";
+import { formatDistanceToNow } from "date-fns";
+import { CommentService } from "app/services/comment-service";
 
 @Component({
   selector: "app-post-detail",
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, CommentComponent],
-  template: `
-    <div class="max-w-4xl mx-auto py-8 px-4">
-      <div
-        class="bg-white dark:bg-gray-900 border border-instagram-border dark:border-gray-800 rounded-lg overflow-hidden"
-      >
-        <div class="md:flex">
-          <!-- Post Image -->
-          <div class="md:w-2/3 bg-white dark:bg-gray-900">
-            <img
-              [src]="post.image"
-              [alt]="post.caption"
-              class="block w-full aspect-square object-cover"
-            />
-          </div>
-
-          <!-- Post Details -->
-          <div class="md:w-1/3 flex flex-col">
-            <!-- Post Header -->
-            <header
-              class="flex items-center justify-between p-4 border-b border-instagram-border"
-            >
-              <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-gray-300 rounded-full"></div>
-                <div>
-                  <h3 class="font-semibold text-sm">{{ post.username }}</h3>
-                </div>
-              </div>
-              <button class="text-instagram-gray hover:text-gray-900">
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path
-                    d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
-                  />
-                </svg>
-              </button>
-            </header>
-
-            <!-- Comments Section -->
-            <div class="flex-1 overflow-y-auto max-h-96 p-4">
-              <!-- Original Caption -->
-              <div class="mb-4">
-                <div class="flex items-start space-x-3">
-                  <div
-                    class="w-8 h-8 bg-gray-300 rounded-full flex-shrink-0"
-                  ></div>
-                  <div class="flex-1">
-                    <div class="flex items-center space-x-2">
-                      <span class="font-semibold text-sm">{{
-                        post.username
-                      }}</span>
-                      <span class="text-sm">{{ post.caption }}</span>
-                    </div>
-                    <span class="text-instagram-gray text-xs">{{
-                      post.timestamp
-                    }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Comments -->
-              <div class="space-y-1">
-                <app-comment
-                  *ngFor="let comment of comments"
-                  [comment]="comment"
-                ></app-comment>
-              </div>
-            </div>
-
-            <!-- Post Actions -->
-            <div class="border-t border-instagram-border p-4">
-              <div class="flex items-center justify-between mb-3">
-                <div class="flex items-center space-x-4">
-                  <button
-                    (click)="toggleLike()"
-                    class="hover:opacity-70 transition-opacity"
-                  >
-                    <svg
-                      class="w-6 h-6"
-                      [class.text-red-500]="isLiked"
-                      [class.fill-current]="isLiked"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                      ></path>
-                    </svg>
-                  </button>
-                  <button class="hover:opacity-70 transition-opacity">
-                    <svg
-                      class="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                      ></path>
-                    </svg>
-                  </button>
-                  <button class="hover:opacity-70 transition-opacity">
-                    <svg
-                      class="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                      ></path>
-                    </svg>
-                  </button>
-                </div>
-                <button class="hover:opacity-70 transition-opacity">
-                  <svg
-                    class="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
-                    ></path>
-                  </svg>
-                </button>
-              </div>
-
-              <div class="mb-3">
-                <span class="font-semibold text-sm"
-                  >{{ post.likes }} likes</span
-                >
-              </div>
-
-              <div class="text-instagram-gray text-xs mb-3">
-                {{ post.timestamp }}
-              </div>
-
-              <!-- Add Comment -->
-              <div
-                class="flex items-center space-x-3 border-t border-instagram-border pt-3"
-              >
-                <input
-                  type="text"
-                  [(ngModel)]="newComment"
-                  placeholder="Add a comment..."
-                  class="comment-input bg-gray-100 dark:bg-gray-800 rounded-full px-4 py-2"
-                  (keypress)="onKeyPress($event)"
-                />
-                <button
-                  (click)="addComment()"
-                  [disabled]="!newComment.trim()"
-                  class="text-instagram-blue font-semibold text-sm hover:text-blue-600 disabled:opacity-50"
-                >
-                  Post
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `,
+  imports: [CommonModule, FormsModule, CommentComponent],
+  templateUrl: "post-detail.component.html",
 })
 export class PostDetailComponent implements OnInit {
   isLiked = false;
   newComment = "";
 
   post = {
-    id: 1,
+    id: "091348ldfhsldkj",
     username: "john_doe",
     avatar: "",
     image: "https://images.pexels.com/photos/1933873/pexels-photo-1933873.jpeg",
@@ -201,48 +30,45 @@ export class PostDetailComponent implements OnInit {
     timestamp: "2 hours ago",
   };
 
-  comments: Comment[] = [
-    {
-      id: 1,
-      username: "jane_smith",
-      avatar: "",
-      text: "Absolutely stunning! 😍",
-      timestamp: "1h",
-      likes: 12,
-    },
-    {
-      id: 2,
-      username: "mike_jones",
-      avatar: "",
-      text: "Great shot! What camera did you use?",
-      timestamp: "45m",
-      likes: 8,
-    },
-    {
-      id: 3,
-      username: "sarah_wilson",
-      avatar: "",
-      text: "This is amazing! I need to visit this place",
-      timestamp: "30m",
-      likes: 15,
-    },
-    {
-      id: 4,
-      username: "alex_brown",
-      avatar: "",
-      text: "Perfect timing for this shot! 📸",
-      timestamp: "15m",
-      likes: 6,
-    },
-  ];
+  comments: Comment[] = [];
 
-  constructor(private route: ActivatedRoute) {}
+  constructor(private route: ActivatedRoute, private postService: PostService
+    , private commentService: CommentService, private router: Router) { }
 
   ngOnInit() {
-    this.route.params.subscribe((params) => {
-      console.log("Post ID:", params["id"]);
-      // Load post data based on ID
-    });
+    this.postService.select_post(this.route.snapshot.paramMap.get('id'))
+    this.postService.get_selectedPost().subscribe((res) => {
+
+      const post = res.data
+      this.post = {
+        id: post._id,
+        username: post.userId.userName,
+        avatar: post.userId.picture_url,
+        image: post.media.url,
+        caption: post.caption,
+        likes: 1000,
+        timestamp: formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })
+
+      }
+    })
+
+    this.commentService.get_comments(this.postService.get_selected_post_id())
+      .subscribe((res: any) => {
+        console.log(res);
+
+        const comments: any = res?.comments
+        this.comments = comments.map((comment: any) => {
+          return {
+            id: comment._id,
+            username: comment.userId.userName,
+            avatar: comment.userId.picture_url,
+            text: comment.content,
+            timestamp: formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true }),
+            likes: 1000
+          }
+        })
+      })
+
   }
 
   toggleLike() {
@@ -264,8 +90,16 @@ export class PostDetailComponent implements OnInit {
         timestamp: "now",
         likes: 0,
       };
-      this.comments.push(comment);
-      this.newComment = "";
+      this.commentService.add_comment(this.postService.get_selected_post_id()
+        , this.newComment.trim()).subscribe((res: any) => {
+          console.log(res);
+
+          const is_success = res?.data;
+          if (is_success) {
+            this.comments.push(comment);
+            this.newComment = "";
+          }
+        })
     }
   }
 

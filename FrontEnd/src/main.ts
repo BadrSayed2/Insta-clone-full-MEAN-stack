@@ -4,6 +4,9 @@ import { provideRouter } from "@angular/router";
 import { Router, RouterOutlet } from "@angular/router";
 import { routes } from "./app/app.routes";
 import { SidebarComponent } from "./app/components/sidebar/sidebar.component";
+
+import { NgIf } from "@angular/common";
+
 import { provideHttpClient } from "@angular/common/http";
 
 @Component({
@@ -31,6 +34,7 @@ export class App {
     "/signup",
     "/verify-code",
     "/forgot-password",
+    "/reset-password"
   ]);
   constructor(private router: Router) {}
   get showSidebar() {
@@ -40,5 +44,6 @@ export class App {
 }
 
 bootstrapApplication(App, {
+
   providers: [provideHttpClient(), provideRouter(routes)],
 });
