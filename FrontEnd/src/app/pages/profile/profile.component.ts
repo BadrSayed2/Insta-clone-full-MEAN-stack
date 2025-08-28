@@ -71,31 +71,60 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit() {
     this.route.params.subscribe((params) => {
-      const username = params["username"];
-    });
-    // Load my profile
-    this.loading = true;
-    this.userService.getUserProfile().subscribe({
-      next: (p) => {
-        // Map backend fields to view model
-        this.profile = {
-          username: p.userName,
-          fullName: p.fullName,
-          bio: p.bio || "",
-          website: "",
-          postsCount: p.postsCount ?? 0,
-          followersCount: p.followCount ?? 0,
-          followingCount: p.followingCount ?? 0,
-          profile_pic: p.profile_pic || "",
-        };
-      },
-      error: (e) => console.error("Failed to load profile", e),
-      complete: () => (this.loading = false),
-    });
-    // Load my posts for profile grid
-    this.postService.getMyPosts().subscribe({
-      next: (posts) => (this.posts = posts || []),
-      error: (e) => console.error("Failed to load posts", e),
+      const username = params["username"] as string;
+      this.loading = true;
+
+      if (!username || username === "me") {
+        // Viewing own profile
+        this.userService.getUserProfile().subscribe({
+          next: (p) => {
+            this.profile = {
+              username: p.userName,
+              fullName: p.fullName,
+              bio: p.bio || "",
+              website: "",
+              postsCount: p.postsCount ?? 0,
+              followersCount: p.followCount ?? 0,
+              followingCount: p.followingCount ?? 0,
+              profile_pic: p.profile_pic || "",
+            };
+          },
+          error: (e) => console.error("Failed to load profile", e),
+          complete: () => (this.loading = false),
+        });
+
+        this.postService.getMyPosts().subscribe({
+          next: (posts) => (this.posts = posts || []),
+          error: (e) => console.error("Failed to load posts", e),
+        });
+      } else {
+        // Viewing other user's profile by username
+        this.userService.getUserByUsername(username).subscribe({
+          next: (u: any) => {
+            const profilePic =
+              typeof u.profile_pic === "string"
+                ? u.profile_pic
+                : u?.profile_pic?.url || "";
+            this.profile = {
+              username: u.userName,
+              fullName: u.fullName,
+              bio: u.bio || "",
+              website: "",
+              postsCount: u.postsCount ?? 0,
+              followersCount: u.followCount ?? 0,
+              followingCount: u.followingCount ?? 0,
+              profile_pic: profilePic,
+            };
+          },
+          error: (e) => console.error("Failed to load user by username", e),
+          complete: () => (this.loading = false),
+        });
+
+        this.postService.getUserPosts(username).subscribe({
+          next: (posts) => (this.posts = posts || []),
+          error: (e) => console.error("Failed to load user's posts", e),
+        });
+      }
     });
   }
   //! search in followers not handled yet

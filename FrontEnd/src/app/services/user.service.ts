@@ -14,7 +14,7 @@ export interface UserSummary {
 export class UserService {
   apiUrl = `http://localhost:4000/users/me`;
   constructor(private http: HttpClient) {}
-  // Shape returned by backend for /users/me
+  // ! get logged user profile
   getUserProfile(): Observable<{
     userName: string;
     fullName: string;
@@ -37,6 +37,21 @@ export class UserService {
         // { withCredentials: true }
       )
       .pipe(map((res) => res.data.profile || {}));
+  }
+
+  // ! get another user's profile by by using username
+  getUserByUsername(username: string): Observable<{
+    userName: string;
+    fullName: string;
+    bio?: string;
+    accessability?: string;
+    profile_pic?: string | { url?: string } | null;
+  }> {
+    return this.http
+      .get<{ status: string; message: string; data: any }>(
+        `http://localhost:4000/users/${encodeURIComponent(username)}`
+      )
+      .pipe(map((res) => res.data));
   }
 
   getFollowers(profileId: string): Observable<UserSummary[]> {
@@ -115,8 +130,8 @@ export class UserService {
     return of(data).pipe(delay(200));
   }
 
+  // Placeholder for following list (mirrors getFollowers mock for now)
   getFollowing(profileId: string): Observable<UserSummary[]> {
-    // For now return same mock as followers; replace with API when available
     return this.getFollowers(profileId).pipe(delay(150));
   }
 
