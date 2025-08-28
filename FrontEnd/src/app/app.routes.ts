@@ -31,6 +31,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: "reset-password",
+    loadComponent: () =>
+      import("./pages/reset-password/reset-password.component").then(
+        (m) => m.ResetPasswordComponent
+      ),
+  },
+  {
     path: "profile/:id",
     loadComponent: () =>
       import("./pages/profile/profile.component").then(

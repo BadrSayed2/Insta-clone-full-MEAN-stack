@@ -1,7 +1,8 @@
-import { Component } from "@angular/core";
+import { Component, inject, Inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { RouterLink } from "@angular/router";
+import { AuthService } from "app/services/auth.service";
 
 @Component({
   selector: "app-forgot-password",
@@ -37,6 +38,7 @@ import { RouterLink } from "@angular/router";
                 type="submit"
                 class="w-full btn-primary"
                 [disabled]="loading"
+                
               >
                 {{ loading ? "Sending…" : "Send login link" }}
               </button>
@@ -98,18 +100,32 @@ import { RouterLink } from "@angular/router";
   `,
 })
 export class ForgotPasswordComponent {
-  email = "";
-  sent = false;
-  loading = false;
+private postApi = inject (AuthService);
 
-  send() {
-    if (!this.email) return;
-    this.loading = true;
-    // Simulate async request
-    setTimeout(() => {
-      this.sent = true;
-      this.loading = false;
-      console.log("Password reset link sent to", this.email);
-    }, 800);
+email: string = "";
+sent: boolean = false;
+loading: boolean = false;
+
+send() {
+  if (!this.email) {
+    alert("Please enter your email first.");
+    return;
   }
+
+  this.loading = true;
+
+this.postApi.forgetPassword({ email: this.email }).subscribe({
+  next: (res: any) => {
+    this.loading = false;
+    this.sent = true;
+    console.log("Password reset link sent to:", this.email);
+    alert("Check your email for the reset link!");
+  },
+  error: (err: any) => {
+    this.loading = false;
+    console.error("Error while sending reset link", err);
+    alert("Something went wrong, please try again.");
+  }
+});
+}
 }

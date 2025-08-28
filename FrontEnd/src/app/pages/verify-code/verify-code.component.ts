@@ -110,7 +110,6 @@ export class VerifyCodeComponent {
     this.resending = true;
     this.message = '';
     try {
-      // هنا يمكن استدعاء دالة resend من AuthService إذا أردت
       await new Promise((r) => setTimeout(r, 700));
       this.message = 'Code resent.';
     } finally {
