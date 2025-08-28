@@ -33,8 +33,8 @@ export class UserService {
   }> {
     return this.http
       .get<{ status: string; message: string; data: { profile: any } }>(
-        this.apiUrl
-        // { withCredentials: true }
+        this.apiUrl,
+        { withCredentials: true }
       )
       .pipe(map((res) => res.data.profile || {}));
   }
@@ -49,7 +49,8 @@ export class UserService {
   }> {
     return this.http
       .get<{ status: string; message: string; data: any }>(
-        `http://localhost:4000/users/${encodeURIComponent(username)}`
+        `http://localhost:4000/users/${encodeURIComponent(username)}`,
+        { withCredentials: true }
       )
       .pipe(map((res) => res.data));
   }
@@ -145,6 +146,8 @@ export class UserService {
           profile_pic?: string | null;
         }
   ): Observable<any> {
-    return this.http.patch(this.apiUrl, payload);
+    return this.http.patch(this.apiUrl, payload, {
+      withCredentials: true,
+    });
   }
 }

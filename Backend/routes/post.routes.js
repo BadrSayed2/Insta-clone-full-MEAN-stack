@@ -29,7 +29,6 @@ const {
 
   get_comments,
   getUserPosts,
-
 } = require("../controllers/post.controller.js");
 const authenticate = require("../middlewares/auth-middleware.js");
 const upload = require("../config/multer.config.js");
@@ -52,13 +51,12 @@ postRouter.post(
 
 postRouter.get("/feed", authenticate, feedPosts);
 // Authenticated user's posts
-postRouter.get("/me", getMyPosts);
+postRouter.get("/me", authenticate, getMyPosts);
 //! update post
-
 
 postRouter.post("/comment/:postId", authenticate, commentPost);
 
-postRouter.get("/comment/:postId", authenticate ,get_comments)
+postRouter.get("/comment/:postId", authenticate, get_comments);
 
 //!get specific Post with id
 postRouter.get("/:postId", getPost);
@@ -73,10 +71,9 @@ postRouter.put(
   updatePostHandler
 );
 
-
 // Nested list route when mounted at /users/:username/posts
 // If mounted at top-level /posts, this will return 400 from controller when username is missing
-postRouter.get("/", getUserPosts);
+postRouter.get("/", authenticate, getUserPosts);
 
 // Single post endpoints at top-level /posts
 postRouter.get("/:postId", getPost);
@@ -84,11 +81,10 @@ postRouter.get("/:postId", getPost);
 // Delete post if it belongs to the user
 
 // Get posts for a specific user: /posts/user/:id
-postRouter.get("/user/:id", authenticate , getUserPosts);
+postRouter.get("/user/:id", authenticate, getUserPosts);
 
 //! Delete post if it belongs to the user
 
 postRouter.delete("/:postId", authenticate, deletePost);
-
 
 module.exports = postRouter;

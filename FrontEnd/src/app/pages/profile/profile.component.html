@@ -135,7 +135,7 @@
       @for (post of posts; track post._id) {
       <div
         class="aspect-square bg-gray-300 relative group cursor-pointer"
-        [routerLink]="['/post', post._id]"
+        [routerLink]="['/post-details', post._id]"
       >
         <img
           [src]="post.media?.url || ''"

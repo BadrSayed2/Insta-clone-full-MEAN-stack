@@ -27,6 +27,7 @@ export class PostService {
   createPost(form: FormData): Observable<HttpResponse<ApiResponse>> {
     return this.http.post<ApiResponse>(this.apiUrl, form, {
       observe: "response",
+      withCredentials: true,
     });
   }
   //! get logged user posts
@@ -45,7 +46,7 @@ export class PostService {
     }>
   > {
     return this.http
-      .get<ApiResponse<any[]>>(`${this.apiUrl}/me`) //{ withCredentials: true }
+      .get<ApiResponse<any[]>>(`${this.apiUrl}/me`, { withCredentials: true })
       .pipe(map((res) => res.data || []));
   }
 
@@ -67,7 +68,8 @@ export class PostService {
     return this.http
       .get<{ posts?: any[]; success?: boolean; data?: any }>(
         //! we use encodedURIComponent to safely encode the username ex: adham ashraf = adham%20ashraf
-        `http://localhost:4000/users/${encodeURIComponent(username)}/posts`
+        `http://localhost:4000/users/${encodeURIComponent(username)}/posts`,
+        { withCredentials: true }
       )
       .pipe(map((res) => (res.posts || res?.data?.posts || []) as any[]));
   }
