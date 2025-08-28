@@ -22,7 +22,7 @@ export class PostDetailComponent implements OnInit {
   newComment = "";
 
   post = {
-    id: 1,
+    id: "091348ldfhsldkj",
     username: "john_doe",
     avatar: "",
     image: "https://images.pexels.com/photos/1933873/pexels-photo-1933873.jpeg",
@@ -120,8 +120,14 @@ export class PostDetailComponent implements OnInit {
         timestamp: "now",
         likes: 0,
       };
-      this.comments.push(comment);
-      this.newComment = "";
+      this.commentService.add_comment(this.postService.get_selected_post_id() 
+      , this.newComment.trim()).subscribe((res:any)=>{
+        const is_success = res?.data;
+        if(is_success){
+          this.comments.push(comment);
+          this.newComment = "";
+        }
+      })
     }
   }
 

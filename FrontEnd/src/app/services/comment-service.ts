@@ -12,10 +12,14 @@ export class CommentService {
 
   constructor(private httpClient: HttpClient) {  }
 
-  get_comments (postId : string):Observable<any[]>{
+  get_comments (postId : string):Observable<any>{
     return this.httpClient.get<any>(this.apiUrl + "comment/" + postId,{
       withCredentials : true
     })
+  }
+
+  add_comment (postId : string , comment : string){
+    return this.httpClient.post(this.apiUrl + "comment/" + postId,{comment  },{withCredentials : true})
   }
 }
 

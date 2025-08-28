@@ -6,12 +6,12 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:4000/auth/check';
+  private apiUrl = 'http://localhost:4000/auth/';
   client_obs: Observable<any[]>;
 
 
   constructor(private httpClient: HttpClient) {
-    this.client_obs = this.httpClient.get<any[]>(this.apiUrl, {
+    this.client_obs = this.httpClient.get<any>(this.apiUrl + "check", {
       withCredentials: true
     })
   }
@@ -22,6 +22,12 @@ export class AuthService {
       result = res.success
     })
     return result;
+  }
+
+  verify_otp(code : string){
+    return this.httpClient.post<any>(this.apiUrl + "verify_otp",{code}, {
+      withCredentials: true
+    })
   }
 
 }
