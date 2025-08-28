@@ -25,6 +25,7 @@ const {
   commentPost,
   feedPosts,
   getPost,
+  get_comments,
 } = require("../controllers/post.controller.js");
 const authenticate = require("../middlewares/auth-middleware.js");
 const upload = require("../config/multer.config.js");
@@ -40,11 +41,16 @@ postRouter.post(
   ]),
   createPost
 );
+
+postRouter.post("/comment/:postId", authenticate, postController.commentPost);
+
+postRouter.get("/comment/:postId", authenticate ,postController.get_comments)
+
 //! get user posts for users which he follows
 postRouter.get("/feed", authenticate, feedPosts);
 //!get specific Post with id
 postRouter.get("/:postId", getPost);
-//! update post
+v
 postRouter.put(
   "/:postId",
   authenticate,
@@ -54,7 +60,12 @@ postRouter.put(
   ]),
   updatePostHandler
 );
+
+// Get posts for a specific user: /posts/user/:id
+postRouter.get("/user/:id", authenticate , postController.getUserPosts);
+
 //! Delete post if it belongs to the user
 postRouter.delete("/:postId", authenticate, deletePost);
+
 
 module.exports = postRouter;

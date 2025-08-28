@@ -185,7 +185,28 @@ const updatePostHandler = async (req, res, next) => {
   return res.json({ message: "post updated successfully", success: true });
 };
 
+
+const get_comments = async(req,res,next)=>{
+  try{
+    const user_id = req?.user?.id
+    const post_id = req.params.postId
+    if(!post_id){
+      return res.status(404).json({err : "post not found" , success : false})
+    }
+    const comments = await Comment.find({postId : post_id}).populate({
+      path: "userId",
+      select: "userName fullName profile_pic accessabilty",
+    }).lean()
+    res.json({comments , success : true})
+  }catch(e){
+    console.log(e.message);
+    res.status(500).json({err : "server error" , success : true})
+    
+  }
+}
+
 const commentPost = async (req, res, next) => {
+
   const userId = req?.user?.id;
   const postId = req?.params?.postId;
   const comment = req?.body?.comment;
@@ -281,4 +302,5 @@ module.exports = {
   feedPosts,
   getPost,
   getUserPosts,
+  get_comments
 };
