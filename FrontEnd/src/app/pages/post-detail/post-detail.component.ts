@@ -1,7 +1,6 @@
 import { Component, OnInit } from "@angular/core";
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { CommonModule } from "@angular/common";
-import { RouterLink } from "@angular/router";
 import { FormsModule } from "@angular/forms";
 import {
   CommentComponent,
@@ -14,7 +13,7 @@ import { CommentService } from "app/services/comment-service";
 @Component({
   selector: "app-post-detail",
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, CommentComponent],
+  imports: [CommonModule, FormsModule, CommentComponent],
   templateUrl: "post-detail.component.html",
 })
 export class PostDetailComponent implements OnInit {
@@ -31,51 +30,20 @@ export class PostDetailComponent implements OnInit {
     timestamp: "2 hours ago",
   };
 
-  comments: Comment[] = [
-    {
-      id: 1,
-      username: "jane_smith",
-      avatar: "",
-      text: "Absolutely stunning! 😍",
-      timestamp: "1h",
-      likes: 12,
-    },
-    {
-      id: 2,
-      username: "mike_jones",
-      avatar: "",
-      text: "Great shot! What camera did you use?",
-      timestamp: "45m",
-      likes: 8,
-    },
-    {
-      id: 3,
-      username: "sarah_wilson",
-      avatar: "",
-      text: "This is amazing! I need to visit this place",
-      timestamp: "30m",
-      likes: 15,
-    },
-    {
-      id: 4,
-      username: "alex_brown",
-      avatar: "",
-      text: "Perfect timing for this shot! 📸",
-      timestamp: "15m",
-      likes: 6,
-    },
-  ];
+  comments: Comment[] = [];
 
   constructor(private route: ActivatedRoute, private postService: PostService
-    , private commentService: CommentService) { }
+    , private commentService: CommentService, private router: Router) { }
 
   ngOnInit() {
+    this.postService.select_post(this.route.snapshot.paramMap.get('id'))
     this.postService.get_selectedPost().subscribe((res) => {
+
       const post = res.data
       this.post = {
         id: post._id,
-        username: post.user.userName,
-        avatar: post.user.picture_url,
+        username: post.userId.userName,
+        avatar: post.userId.picture_url,
         image: post.media.url,
         caption: post.caption,
         likes: 1000,
@@ -86,15 +54,17 @@ export class PostDetailComponent implements OnInit {
 
     this.commentService.get_comments(this.postService.get_selected_post_id())
       .subscribe((res: any) => {
-        const comments: any = res?.data?.comments
-        this.comments = comments.map((comment:any) => {
+        console.log(res);
+
+        const comments: any = res?.comments
+        this.comments = comments.map((comment: any) => {
           return {
-            id : comment._id,
-            username : comment.user.userName,
-            avatar : comment.user.picture_url,
-            text : comment.content,
-            timestamp : formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true }),
-            likes : 1000
+            id: comment._id,
+            username: comment.userId.userName,
+            avatar: comment.userId.picture_url,
+            text: comment.content,
+            timestamp: formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true }),
+            likes: 1000
           }
         })
       })
@@ -120,14 +90,16 @@ export class PostDetailComponent implements OnInit {
         timestamp: "now",
         likes: 0,
       };
-      this.commentService.add_comment(this.postService.get_selected_post_id() 
-      , this.newComment.trim()).subscribe((res:any)=>{
-        const is_success = res?.data;
-        if(is_success){
-          this.comments.push(comment);
-          this.newComment = "";
-        }
-      })
+      this.commentService.add_comment(this.postService.get_selected_post_id()
+        , this.newComment.trim()).subscribe((res: any) => {
+          console.log(res);
+
+          const is_success = res?.data;
+          if (is_success) {
+            this.comments.push(comment);
+            this.newComment = "";
+          }
+        })
     }
   }
 

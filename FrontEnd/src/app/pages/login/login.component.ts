@@ -127,7 +127,7 @@ export class LoginComponent {
     this.loginApi.loginUser(this.loginForm.value).subscribe({
       next: (res: any) => {
         alert("Login successful.");
-        this.router.navigate(['/home']);
+        this.router.navigate(['/verify-code']);
       },
       error: (err) => {
         if (err.status === 403) {

@@ -99,44 +99,42 @@ const login = async (req, res, next) => {
 
   if (!match) {
     return next(new ApiError("in-valid login Data", 400));
+    
   }
 
   const code = generateCode();
   await OTP.create({ userId: user._id, code });
 
-  if (!user.isVerified) {
   emailEvent.emit("sendConfirmEmail", { email, code });
+  
+  if (!user.isVerified) {
+    return next(new ApiError("in-valid login Data", 400));
+  };
 
+  const token = generateOTPToken(String(user._id));
+  const cookieOptions = {
+    httpOnly: true,
+    secure: true,
+    sameSite: "Strict",
+    maxAge: 5 * 60 * 1000,
+  };
+
+  res.cookie("OTP_verification_token", token, cookieOptions);
   return res
-  .status(403)
-  .json(
-    new ApiResponse({ message: "please check your email", success: true })
-  );
-};
-
-const token = generateOTPToken(String(user._id));
-const cookieOptions = {
-  httpOnly: true,
-  secure: true,
-  sameSite: "Strict",
-  maxAge: 5 * 60 * 1000,
-};
-
-res.cookie("OTP_verification_token", token, cookieOptions);
-return res
-.status(200)
-.json(
-  new ApiResponse({ message: "please check your email", success: true })
-);
+    .status(200)
+    .json(
+      new ApiResponse({ message: "please check your email", success: true })
+    );
 
 
 }
+
 const forgetPassword = async (req, res, next) => {
   const email = req.body.email;
   const user = await User.findOne({ email });
   if (!user)
     return next(
-  new ApiError("if Email exists activation link will be sent", 404)
+      new ApiError("if Email exists activation link will be sent", 404)
     );
   const resetToken = crypto.randomBytes(32).toString("hex");
   const hashedToken = crypto
@@ -183,6 +181,7 @@ const resetPassword = async (req, res, next) => {
 const verifyOtp = async (req, res, next) => {
   const token = req?.cookies?.["OTP_verification_token"]; // contains user id
   const code = String(req?.body?.code ?? "").trim();
+
   if (!token) {
     return next(new ApiError("you need to login", 401));
   }
@@ -198,6 +197,7 @@ const verifyOtp = async (req, res, next) => {
   }
 
   const otpDoc = await OTP.findOne({ userId: user._id, code });
+
   if (otpDoc) {
     if (!user?.isVerified) {
       user.isVerified = true;

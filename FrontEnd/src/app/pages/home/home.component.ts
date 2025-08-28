@@ -18,12 +18,12 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void {
     this.postService.get_posts().subscribe((data: any) => {
       console.log(data);
-      const posts_data = data?.data;
+      const posts_data = data?.posts;
       this.posts  = posts_data.map((post: any) => {
         return {
           id : post._id,
-          username :post.user.userName,
-          avatar :post.user.profile_pic,
+          username :post.userId.userName,
+          avatar :post.userId.profile_pic,
           image :post.media.url,
           caption : post.caption,
           likes : 1000,
@@ -35,8 +35,9 @@ export class HomeComponent implements OnInit {
   }
   
   show_post(post_id : string){
+    
     this.postService.select_post(post_id)
-    this.router.navigate(['/post/'])
+    this.router.navigate(['/post-details/'+post_id])
   }
   stories = [
     { username: "john_doe", avatar: "" },

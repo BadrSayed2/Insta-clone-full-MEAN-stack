@@ -25,12 +25,14 @@ export class PostService {
     return this.selected_post_id
   }
   get_selectedPost () : Observable<any>{
+    console.log(this.apiUrl + this.selected_post_id);
+    
     return this.httpClient.get<any>(this.apiUrl + this.selected_post_id,{
       withCredentials : true
     })
   }
 
-  select_post (post_id :string) : void{
+  select_post (post_id :any) : void{
     this.selected_post_id = post_id
   }
 

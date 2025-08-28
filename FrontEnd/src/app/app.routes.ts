@@ -21,8 +21,8 @@ export const routes: Routes = [
   {
     path: "verify-code",
     loadComponent: () =>
-      import("./pages/verify-code/verify-code.component").then(
-        (m) => m.VerifyCodeComponent
+      import("./pages/verify_otp/verify-otp").then(
+        (m) => m.VerifyOtp
       ),
   },
   {
@@ -41,7 +41,8 @@ export const routes: Routes = [
       ),
   },
   {
-    path: "post/",
+    path: "post-details/:id",
+    canActivate : [authGuard],
     loadComponent: () =>
       import("./pages/post-detail/post-detail.component").then(
         (m) => m.PostDetailComponent

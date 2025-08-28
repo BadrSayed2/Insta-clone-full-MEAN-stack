@@ -10,13 +10,18 @@ import { AuthService } from 'app/services/auth-service';
 })
 export class VerifyOtp {
   code: string = ""
-  constructor(private authService: AuthService , private router : Router) { }
+  constructor(private authService: AuthService, private router: Router) { }
   onSubmit() {
+    // console.log(this.code);
+
     this.authService.verify_otp(this.code).subscribe((res: any) => {
-      const is_success = res?.success
-        if(is_success){
-          this.router.navigate(['/home'])
-        }
+
+      const is_success = res?.status == "success"
+      console.log(res);
+      
+      if (is_success) {
+        this.router.navigate(['/home'])
+      }
     })
   }
 }

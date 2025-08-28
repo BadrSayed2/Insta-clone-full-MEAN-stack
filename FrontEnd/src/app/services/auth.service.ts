@@ -15,7 +15,9 @@ export class AuthService {
 
   loginUser(userData: any){
     this.url="http://localhost:4000/auth/login"
-    return this.httpClient.post(this.url , userData )
+    return this.httpClient.post(this.url , userData ,{
+      withCredentials : true
+    })
   }
   verify(userData: any) {
   this.url = "http://localhost:4000/auth/verify_otp";
