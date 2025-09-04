@@ -1,4 +1,4 @@
-const express = require("express");
+const router = require("express").Router();
 /**
  * /users
   GET    /users/me
