@@ -16,8 +16,6 @@ const {
 const User = require("../models/user.model");
 const OTP = require("../models/OTP.model");
 
-// Keys are loaded in utils/jwt
-
 const signup = async (req, res, next) => {
   const {
     userName,
@@ -89,8 +87,6 @@ const login = async (req, res, next) => {
 
   const user = await User.findOne({ email });
 
-
-
   if (!user) {
     return next(new ApiError("in-valid login Data", 400));
   }
@@ -99,17 +95,16 @@ const login = async (req, res, next) => {
 
   if (!match) {
     return next(new ApiError("in-valid login Data", 400));
-    
   }
 
   const code = generateCode();
   await OTP.create({ userId: user._id, code });
 
   emailEvent.emit("sendConfirmEmail", { email, code });
-  
+
   if (!user.isVerified) {
     return next(new ApiError("in-valid login Data", 400));
-  };
+  }
 
   const token = generateOTPToken(String(user._id));
   const cookieOptions = {
@@ -125,9 +120,7 @@ const login = async (req, res, next) => {
     .json(
       new ApiResponse({ message: "please check your email", success: true })
     );
-
-
-}
+};
 
 const forgetPassword = async (req, res, next) => {
   const email = req.body.email;

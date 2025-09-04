@@ -17,7 +17,7 @@ const authenticate = async (req, res, next) => {
       return next(new ApiError("Email not verified", 401));
     }
 
-    req.user = { id: payload.userId };
+    req.user = { id: payload.userId }; // Attach user ID to request
     next();
   } catch (error) {
     next(error);

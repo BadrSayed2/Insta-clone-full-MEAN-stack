@@ -86,7 +86,7 @@ const updateProfile = async (req, res, next) => {
     } catch {}
   }
   const updates = {
-    ...(userName && { userName }),
+    ...(userName && { userName }), 
     ...(fullName && { fullName }),
     ...(bio && { bio }),
     ...(gender && { gender }),

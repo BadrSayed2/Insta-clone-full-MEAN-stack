@@ -3,7 +3,7 @@ dotenv.config({ quiet: true });
 const logger = require("./utils/logger");
 const express = require("express");
 const swaggerUi = require("swagger-ui-express");
-
+const compression = require("compression");
 const authRouter = require("./routes/auth.routes");
 const userRouter = require("./routes/user.routes");
 const postRouter = require("./routes/post.routes");
@@ -24,6 +24,7 @@ app.use(
   })
 );
 app.use(express.json());
+app.use(compression());
 app.use(morganMiddleware);
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());

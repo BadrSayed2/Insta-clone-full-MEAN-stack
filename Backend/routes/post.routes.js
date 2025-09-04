@@ -21,24 +21,18 @@ const {
   createPost,
   deletePost,
   updatePostHandler,
-  commentPost,
   feedPosts,
   getPost,
-
   getMyPosts,
-
-  get_comments,
-  getUserPosts,
 } = require("../controllers/post.controller.js");
 const authenticate = require("../middlewares/auth-middleware.js");
 const upload = require("../config/multer.config.js");
-
-// Enable mergeParams so :username from parent route is visible here when nested
-const postRouter = express.Router({ mergeParams: true });
-//! create new Post
-postRouter.post(
+//h1 Get Logged user Posts
+router.get("/me", authenticate, getMyPosts);
+//h1 Create New Post
+router.post(
   "/",
-  // authenticate,
+  authenticate,
   upload.fields([
     { name: "post_video", maxCount: 1 },
     { name: "post_pic", maxCount: 1 },
@@ -46,22 +40,10 @@ postRouter.post(
   createPost
 );
 
-//? this will be in post.routes.js
-// postRouter.post("/comment/:postId", authenticate, commentPost);
+router.get("/feed", authenticate, feedPosts);
+router.get("/:postId", getPost);
 
-postRouter.get("/feed", authenticate, feedPosts);
-// Authenticated user's posts
-postRouter.get("/me", authenticate, getMyPosts);
-//! update post
-
-postRouter.post("/comment/:postId", authenticate, commentPost);
-
-postRouter.get("/comment/:postId", authenticate, get_comments);
-
-//!get specific Post with id
-postRouter.get("/:postId", getPost);
-
-postRouter.put(
+router.put(
   "/:postId",
   authenticate,
   upload.fields([
@@ -71,20 +53,6 @@ postRouter.put(
   updatePostHandler
 );
 
-// Nested list route when mounted at /users/:username/posts
-// If mounted at top-level /posts, this will return 400 from controller when username is missing
-postRouter.get("/", authenticate, getUserPosts);
+router.delete("/:postId", authenticate, deletePost);
 
-// Single post endpoints at top-level /posts
-postRouter.get("/:postId", getPost);
-
-// Delete post if it belongs to the user
-
-// Get posts for a specific user: /posts/user/:id
-postRouter.get("/user/:id", authenticate, getUserPosts);
-
-//! Delete post if it belongs to the user
-
-postRouter.delete("/:postId", authenticate, deletePost);
-
-module.exports = postRouter;
+module.exports = router;

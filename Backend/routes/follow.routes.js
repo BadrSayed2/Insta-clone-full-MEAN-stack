@@ -2,9 +2,8 @@ const express = require("express");
 const authenticate = require("../middlewares/auth-middleware.js");
 const { followUser } = require("../controllers/follow.controller.js");
 
-const followRouter = express.Router();
+const router = express.Router();
 
 // Follow a user: POST /follow  with body { userIdToFollow }
-followRouter.post("/", authenticate, followUser);
-
-module.exports = followRouter;
+router.post("/", authenticate, followUser);
+module.exports = router;
