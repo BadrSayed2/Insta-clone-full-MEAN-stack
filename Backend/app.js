@@ -24,6 +24,7 @@ app.use(
     credentials: true,
   })
 );
+app.set("query parser", "extended");
 app.use(express.json());
 app.use(compression());
 app.use(morganMiddleware);
