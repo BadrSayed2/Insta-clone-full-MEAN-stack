@@ -5,10 +5,12 @@ const {
   getProfile,
   getFollowers,
   updateProfile,
+  getUsers,
 } = require("../controllers/user.controller.js");
 const upload = require("../config/multer.config.js");
 const authenticate = require("../middlewares/auth-middleware.js");
 const router = express.Router();
+router.get("/", getUsers); // get all users and search users
 router.get("/me", authenticate, getProfile);
 router.patch("/me", authenticate, upload.single("profile"), updateProfile);
 router.get("/:username", authenticate, getOtherUserProfile);
