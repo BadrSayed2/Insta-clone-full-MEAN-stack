@@ -71,3 +71,11 @@
 
 const router = require("express").Router();
 const authenticate = require("../middlewares/auth-middleware.js");
+router.use(authenticate);
+const {
+  followUser,
+  unfollowUser,
+} = require("../controllers/follow.controller.js");
+router.post("/", followUser);
+router.delete("/:targetUserId", unfollowUser);
+module.exports = router;

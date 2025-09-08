@@ -36,7 +36,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openapiSpec));
 app.use("/auth", authRouter);
 app.use("/users", userRouter);
 app.use("/posts", postRouter);
-// app.use("/follow", followRouter);
+app.use("/follow", followRouter);
 app.use("/reactions", reactionRouter);
 
 app.use(handleNotFound);
