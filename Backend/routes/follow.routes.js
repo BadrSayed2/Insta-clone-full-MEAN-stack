@@ -75,7 +75,11 @@ router.use(authenticate);
 const {
   followUser,
   unfollowUser,
+  getFollowers,
+  getFollowing,
 } = require("../controllers/follow.controller.js");
 router.post("/", followUser);
+router.get("/me/followers", getFollowers);
+router.get("/me/following", getFollowing);
 router.delete("/:targetUserId", unfollowUser);
 module.exports = router;

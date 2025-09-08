@@ -69,4 +69,28 @@ const unfollowUser = async (req, res, next) => {
     })
   );
 };
-module.exports = { followUser, unfollowUser };
+const getFollowers = async (req, res, next) => {
+  const userId = req?.user?.id;
+  const followers = await Follower.find({ following: userId }).populate(
+    "follower"
+  );
+  return res.status(200).json(
+    new ApiResponse({
+      data: { followers },
+      message: "Followers retrieved successfully",
+    })
+  );
+};
+const getFollowing = async (req, res, next) => {
+  const userId = req?.user?.id;
+  const following = await Follower.find({ follower: userId }).populate(
+    "following"
+  );
+  return res.status(200).json(
+    new ApiResponse({
+      data: { following },
+      message: "Following retrieved successfully",
+    })
+  );
+};
+module.exports = { followUser, unfollowUser, getFollowers, getFollowing };
