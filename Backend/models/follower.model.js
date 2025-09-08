@@ -1,13 +1,15 @@
 const mongoose = require("../config/connect-mongo").mongoose;
 
-const followers_schema = new mongoose.Schema(
+const followSchema = new mongoose.Schema(
   {
-    user: {
+    // user who is following
+    follower: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    followed: {
+    // user being followed
+    following: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
@@ -16,8 +18,8 @@ const followers_schema = new mongoose.Schema(
   { timestamps: true }
 );
 
-followers_schema.index({ user: 1, followed: 1 });
+followSchema.index({ user: 1, followed: 1 }, { unique: true });
 
-const Follower = mongoose.model("Follower", followers_schema);
+const Follow = mongoose.model("Follow", followSchema);
 
-module.exports = Follower;
+module.exports = Follow;
