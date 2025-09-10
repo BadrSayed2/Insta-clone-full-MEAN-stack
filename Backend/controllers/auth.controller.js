@@ -172,9 +172,10 @@ const resetPassword = async (req, res, next) => {
     .json(new ApiResponse({ message: "Password reset successful" }));
 };
 const verifyOtp = async (req, res, next) => {
+  console.log("a7a");
   const token = req?.cookies?.["OTP_verification_token"]; // contains user id
   const code = String(req?.body?.code ?? "").trim();
-
+  
   if (!token) {
     return next(new ApiError("you need to login", 401));
   }

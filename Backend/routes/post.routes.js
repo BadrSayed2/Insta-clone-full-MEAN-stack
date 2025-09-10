@@ -27,6 +27,8 @@ const {
 } = require("../controllers/post.controller.js");
 const authenticate = require("../middlewares/auth-middleware.js");
 const upload = require("../config/multer.config.js");
+const router = express.Router();
+
 //h1 Get Logged user Posts
 router.get("/me", authenticate, getMyPosts);
 //h1 Create New Post
