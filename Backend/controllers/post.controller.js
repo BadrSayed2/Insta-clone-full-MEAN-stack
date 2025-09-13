@@ -47,7 +47,7 @@ const deletePost = async (req, res, next) => {
     if (post.media?.publicId) {
       await deleteAsset(post.media.publicId, post.media.media_type);
     }
-  } catch {}
+  } catch { }
   await post.deleteOne();
   return res
     .status(200)
@@ -76,22 +76,18 @@ const createPost = async (req, res, next) => {
     );
   }
 
-  let mediaPathArr = ["uploads"]; // local uploads folder
   let mediaType = "";
   let cloudinaryPath = "";
-
+  let media = pic ? pic : video;
   if (pic) {
-    mediaPathArr.push("post_pics", pic.filename);
     mediaType = "picture";
     cloudinaryPath = "post_pics";
   } else if (video) {
-    mediaPathArr.push("post_videos", video.filename);
     mediaType = "video";
     cloudinaryPath = "post_videos";
   }
 
-  const mediaPath = path.join(...mediaPathArr);
-  const publicId = await uploadAsset(mediaPath, cloudinaryPath, mediaType);
+  const publicId = await uploadAsset(media, cloudinaryPath, mediaType);
   const imageUrl =
     mediaType === "picture"
       ? getImageUrl(publicId, "post")
@@ -123,11 +119,8 @@ const updatePostHandler = async (req, res, next) => {
   const userId = req.user?.id;
   const newPost = req?.body;
 
-  const video =
-    req.files && req.files["post_video"] ? req.files["post_video"][0] : null;
-  const pic =
-    req.files && req.files["post_pic"] ? req.files["post_pic"][0] : null;
-  let mediaPathArr = ["uploads"];
+  const video = req.files && req.files["post_video"] ? req.files["post_video"][0] : null;
+  const pic = req.files && req.files["post_pic"] ? req.files["post_pic"][0] : null;
   let mediaType = "";
   let cloudinaryPath = "";
 
@@ -154,37 +147,34 @@ const updatePostHandler = async (req, res, next) => {
       )
     );
   } else if (pic) {
-    mediaPathArr.push("post_pics");
-    mediaPathArr.push(pic.filename);
     mediaType = "picture";
     cloudinaryPath = "post_pics";
   } else if (video) {
-    mediaPathArr.push("post_videos");
-    mediaPathArr.push(video.filename);
     mediaType = "video";
     cloudinaryPath = "post_videos";
   }
-  if (pic || video) {
-    const mediaPath = path.join(...mediaPathArr);
-    // Best-effort delete of previous asset using its publicId
-    try {
-      if (foundPost?.media?.publicId) {
-        await deleteAsset(foundPost.media.publicId, mediaType);
-      }
-    } catch (e) {}
-    const newPublicId = await uploadAsset(mediaPath, cloudinaryPath, mediaType);
-    if (!newPublicId) {
-      return next(new ApiError("could not upload your file", 400));
+
+  try {
+    if (foundPost?.media?.publicId) {
+      await deleteAsset(foundPost?.media?.publicId, mediaType);
     }
-    foundPost.media = {
-      url:
-        mediaType === "picture"
-          ? getImageUrl(newPublicId, "post")
-          : getVideoUrl(newPublicId),
-      media_type: mediaType,
-      publicId: newPublicId,
-    };
+  } catch (e) { 
+    console.log(e.message);
   }
+
+  const newPublicId = await uploadAsset(pic || video, cloudinaryPath, mediaType);
+  if (!newPublicId) {
+    return next(new ApiError("could not upload your file", 400));
+  }
+  foundPost.media = {
+    url:
+      mediaType === "picture"
+        ? getImageUrl(newPublicId, "post")
+        : getVideoUrl(newPublicId),
+    media_type: mediaType,
+    publicId: newPublicId,
+  };
+
   foundPost.caption = newPost.caption;
   await foundPost.save();
 

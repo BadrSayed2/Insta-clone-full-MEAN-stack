@@ -14,7 +14,7 @@ const storage = multer.memoryStorage();
 
 const fileFilter = async function (req, file, cb) {
   try {
-    const fileInfo = await fileType.fromBuffer(file.buffer);
+    const fileInfo = await fileType.fromBuffer(file?.buffer);
 
     let allowedTypes;
     let fileIsAllowed = false;
