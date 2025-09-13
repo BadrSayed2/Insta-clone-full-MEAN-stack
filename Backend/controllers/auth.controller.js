@@ -11,7 +11,9 @@ const {
   getUserActiveSessions,
   revokeSessionById 
 } = require("../utils/session-helper");
-const { emailEvent } = require("../utils/email.events");
+const { emailEvent } = require("../utils/email-event");
+const generateCode = require("../utils/generate-code");
+
 /**
  * User Signup
  */
@@ -59,6 +61,9 @@ const signup = async (req, res, next) => {
       counter++;
     }
 
+    // Generate OTP code
+    const otpCode = generateCode();
+
     // Create user
     const newUser = new User({
       firstName: firstName.trim(),
@@ -70,6 +75,8 @@ const signup = async (req, res, next) => {
       phoneNumber,
       gender: gender.toLowerCase(),
       date_of_birth: new Date(DOB),
+      otpCode,
+      otpExpires: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes from now
     });
 
     await newUser.save();
@@ -77,8 +84,11 @@ const signup = async (req, res, next) => {
     // Generate OTP token for verification
     const otpToken = generateOTPToken(newUser._id);
 
-    // TODO: Send OTP to user's email
-    // await sendOTPEmail(newUser.email, otpCode);
+    // Send OTP email
+    emailEvent.emit("sendConfirmEmail", {
+      email: newUser.email,
+      code: otpCode
+    });
 
     res.status(201).json({
       success: true,
@@ -144,11 +154,22 @@ const login = async (req, res, next) => {
 
     // Check if user is verified
     if (!user.isVerified) {
+      // Generate new OTP code
+      const otpCode = generateCode();
+      
+      // Update user with new OTP
+      user.otpCode = otpCode;
+      user.otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
+      await user.save();
+
       // Generate new OTP token
       const otpToken = generateOTPToken(user._id);
       
-      // TODO: Send OTP to user's email
-      // await sendOTPEmail(user.email, otpCode);
+      // Send OTP email
+      emailEvent.emit("sendConfirmEmail", {
+        email: user.email,
+        code: otpCode
+      });
 
       return res.status(403).json({
         success: false,
@@ -236,12 +257,20 @@ const verifyOtp = async (req, res, next) => {
         return next(new ApiError("User already verified", 400));
       }
 
-      // TODO: Verify the actual OTP code here
-      // This is where you'd check the code against what was sent via email
-      // For now, accepting any 8-digit code
+      // Check if OTP has expired
+      if (!user.otpExpires || user.otpExpires < new Date()) {
+        return next(new ApiError("OTP has expired. Please request a new one.", 400));
+      }
 
-      // Mark user as verified
+      // Verify the actual OTP code
+      if (!user.otpCode || user.otpCode !== code) {
+        return next(new ApiError("Invalid OTP code", 400));
+      }
+
+      // Mark user as verified and clear OTP data
       user.isVerified = true;
+      user.otpCode = undefined;
+      user.otpExpires = undefined;
       await user.save();
 
       res.status(200).json({
@@ -261,6 +290,63 @@ const verifyOtp = async (req, res, next) => {
   } catch (error) {
     console.error("OTP verification error:", error);
     return next(new ApiError("OTP verification failed", 500));
+  }
+};
+
+/**
+ * Resend OTP
+ */
+const resendOtp = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return next(new ApiError("Email is required", 400));
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!user) {
+      return next(new ApiError("User not found", 404));
+    }
+
+    if (user.isVerified) {
+      return next(new ApiError("User already verified", 400));
+    }
+
+    // Delete any existing OTPs for this user
+    await OTP.deleteMany({ userId: user._id });
+
+    // Generate and save new OTP
+    const otpCode = generateCode();
+    const otp = new OTP({
+      userId: user._id,
+      code: otpCode,
+    });
+
+    await otp.save();
+
+    // Generate new OTP token
+    const otpToken = generateOTPToken(user._id);
+
+    // Send OTP email
+    emailEvent.emit("sendConfirmEmail", {
+      email: user.email,
+      code: otpCode
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "New OTP sent to your email",
+      data: {
+        userId: user._id,
+        email: user.email,
+        otpToken, // Remove in production
+      }
+    });
+
+  } catch (error) {
+    console.error("Resend OTP error:", error);
+    return next(new ApiError("Failed to resend OTP", 500));
   }
 };
 
@@ -331,7 +417,7 @@ const logout = async (req, res, next) => {
 /**
  * Logout all devices
  */
-const logoutAllDevicesController  = async (req, res, next) => {
+const logoutAllDevicesController = async (req, res, next) => {
   try {
     const userId = req.user._id;
 
@@ -442,9 +528,14 @@ const forgetPassword = async (req, res, next) => {
 
     await user.save();
 
-    // TODO: Send reset email
-    // const resetURL = `${req.protocol}://${req.get('host')}/reset-password?token=${resetToken}`;
-    // await sendPasswordResetEmail(user.email, resetURL);
+    // Create reset URL
+    const resetURL = `${req.protocol}://${req.get('host')}/reset-password?token=${resetToken}`;
+    
+    // Send reset email
+    emailEvent.emit("sendResetPasswordEmail", {
+      email: user.email,
+      resetUrl: resetURL
+    });
 
     res.status(200).json({
       success: true,
@@ -512,6 +603,7 @@ module.exports = {
   signup,
   login,
   verifyOtp,
+  resendOtp,
   refreshToken,
   logout,
   logoutAllDevicesController,

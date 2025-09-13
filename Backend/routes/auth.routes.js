@@ -10,6 +10,7 @@ const {
   forgetPassword,
   resetPassword,
   verifyOtp,
+  resendOtp,
 } = require("../controllers/auth.controller.js");
 
 // Import the new middleware (you'll need to update the path based on your structure)
@@ -63,9 +64,10 @@ router.get("/check", authenticated, (req, res) => {
 });
 
 // Public routes (no authentication required)
-router.post("/signup", signupRateLimit, validateSignup, skipIfAuthenticated, signup);
+router.post('/signup', validateSignup, signupRateLimit, skipIfAuthenticated, signup);
 router.post("/login", loginRateLimit, validateLogin, skipIfAuthenticated, login);
-router.post("/verify-otp", otpRateLimit, validateOTP, verifyOtp);
+router.post('/verify-otp', validateOTP, otpRateLimit, verifyOtp);
+router.post('/resend-otp', validateOTP, otpRateLimit, resendOtp);
 router.post("/forget-password", forgotPasswordRateLimit, validateForgetPassword, forgetPassword);
 router.post("/reset-password", validateResetPassword, resetPassword);
 
