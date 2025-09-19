@@ -53,12 +53,17 @@ const signup = async (req, res, next) => {
     // Create username from first and last name
     const baseUsername = `${firstName.toLowerCase()}.${lastName.toLowerCase()}`;
     let userName = baseUsername;
-    let counter = 1;
+    //generate random number base 6
+    const randomNumber = Math.floor(Math.random() * 1000000);
+    // Add random number to username
+    userName = `${baseUsername}.${randomNumber}`;
 
     // Ensure unique username
     while (await User.findOne({ userName })) {
-      userName = `${baseUsername}.${counter}`;
-      counter++;
+      userName = `${baseUsername}.${randomNumber}`;
+      const randomNumber = Math.floor(Math.random() * 1000000);
+      // Add random number to username
+      userName = `${baseUsername}.${randomNumber}`;
     }
 
     // Generate OTP code
