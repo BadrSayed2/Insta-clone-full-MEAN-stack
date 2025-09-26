@@ -1,0 +1,114 @@
+<section class="cp-card">
+  <h1 class="cp-title">Create a new post</h1>
+  @if (uploading) {
+  <div class="cp-overlay" aria-live="polite" aria-busy="true">
+    <div class="cp-spinner" role="status"></div>
+    <div class="cp-overlay__text">Uploading…</div>
+  </div>
+  }
+
+  <div
+    class="cp-dropzone"
+    [class.cp-dropzone--over]="dragOver"
+    (drop)="onDrop($event)"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+  >
+    @if (!file) {
+    <p class="cp-dropzone__text">Drag & drop an image or video here</p>
+    <p class="cp-dropzone__hint">or</p>
+    <label class="cp-btn cp-btn--primary" for="fileInput">Select file</label>
+    <input
+      id="fileInput"
+      class="cp-hidden-input"
+      type="file"
+      (change)="onFileSelected($event)"
+      accept="image/*,video/*"
+    />
+    } @else {
+    <div class="cp-preview">
+      <div class="cp-file-name">{{ file.name }}</div>
+      @if (isVideo) {
+      <video
+        class="cp-media"
+        [src]="previewUrl || ''"
+        controls
+        playsinline
+      ></video>
+      } @else {
+      <img class="cp-media" [src]="previewUrl || ''" alt="preview" />
+      }
+      <div class="cp-preview-actions">
+        <button type="button" class="cp-btn" (click)="removeFile()">
+          Remove
+        </button>
+        <label class="cp-btn cp-btn--secondary" for="fileInputReplace"
+          >Replace</label
+        >
+        <input
+          id="fileInputReplace"
+          class="cp-hidden-input"
+          type="file"
+          (change)="onFileSelected($event, true)"
+          accept="image/*,video/*"
+        />
+      </div>
+    </div>
+    }
+  </div>
+
+  <div class="cp-field">
+    <label class="cp-label">Caption</label>
+    <textarea
+      class="cp-textarea"
+      [(ngModel)]="caption"
+      [attr.maxLength]="maxCaption"
+      rows="4"
+      placeholder="Write a caption..."
+    ></textarea>
+    <div class="cp-hint">
+      <span [class.cp-hint--warn]="caption.length > maxCaption - 50">
+        {{ caption.length }} / {{ maxCaption }}
+      </span>
+    </div>
+  </div>
+
+  <div class="cp-actions">
+    <button type="button" class="cp-btn" (click)="reset()">Cancel</button>
+    <button
+      type="button"
+      class="cp-btn cp-btn--primary"
+      [disabled]="!file || uploading"
+      (click)="submit()"
+    >
+      {{ uploading ? "Posting…" : "Post" }}
+    </button>
+  </div>
+</section>
+
+@if (toast.visible) {
+<div
+  class="cp-toast"
+  [ngClass]="{
+      'cp-toast--success': toast.type === 'success',
+      'cp-toast--error': toast.type === 'error',
+      'cp-toast--info': toast.type === 'info'
+    }"
+  role="status"
+  aria-live="polite"
+>
+  <span class="cp-toast__icon" aria-hidden="true">
+    @if (toast.type === 'success') { ✓ } @else if (toast.type === 'error') { ⚠ }
+    @else { ⓘ }
+  </span>
+  <span class="cp-toast__text">{{ toast.message }}</span>
+  <button
+    type="button"
+    class="cp-toast__close"
+    (click)="toastHide()"
+    aria-label="Close"
+  >
+    ×
+  </button>
+</div>
+}

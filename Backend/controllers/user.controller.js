@@ -1,0 +1,198 @@
+const fs = require("fs");
+const CryptoJS = require("crypto-js");
+
+const User = require("../models/user.model");
+const Post = require("../models/post.model");
+const Follower = require("../models/follower.model");
+
+const ApiResponse = require("../utils/api-response");
+const ApiError = require("../utils/api-error");
+const apiFeature = require("../utils/api-feature");
+const {
+  getImageUrl,
+  getVideoUrl,
+  uploadAsset,
+  deleteAsset,
+} = require("../utils/media");
+
+const getOtherUserProfile = async (req, res, next) => {
+  const userName = req.params.username;
+  const user = await User.findOne({
+    userName,
+  }).select("-password -_id -email -phoneNumber -isVerified ");
+  if (!user) {
+    return next(new ApiError("User not found", 404));
+  }
+  return res.status(200).json(new ApiResponse({ data: user }));
+};
+//! get user profile
+const getProfile = async (req, res, next) => {
+  const userId = req?.user?.id || "68adf362152930c835fc5e4f";
+
+  let profile = await User.findById(userId)
+    .select("-password -_id  -isVerified")
+    .lean();
+
+  if (!profile) return next(new ApiError("User not found", 404));
+  profile.profile_pic = profile?.profile_pic?.url || null;
+  // Decrypt phone number if present
+  if (profile.phoneNumber) {
+    try {
+      const decrypted = CryptoJS.AES.decrypt(
+        profile.phoneNumber,
+        process.env.ENCRYPT
+      ).toString(CryptoJS.enc.Utf8);
+      // Use decrypted only if it yields a non-empty string
+      if (decrypted) profile.phoneNumber = decrypted;
+    } catch {}
+  }
+  let userPosts = await Post.find({ userId: userId })
+    .sort({ createdAt: -1 })
+    .limit(10)
+    .lean();
+
+  // userPosts = userPosts.map((post) => {
+  //   const mediaType = post.media.media_type;
+  //   const mediaPublicId = post.media.url;
+  //   let mediaUrl = "";
+  //   if (mediaType === "picture") {
+  //     mediaUrl = getImageUrl(mediaPublicId, "post");
+  //   } else if (mediaType === "video") {
+  //     mediaUrl = getVideoUrl(mediaPublicId);
+  //   }
+  //   return {
+  //     ...post,
+  //     media: { media_type: mediaType, url: mediaUrl },
+  //   };
+  // });
+
+  return res.status(200).json(new ApiResponse({ data: { profile } }));
+};
+//! update user profile
+const updateProfile = async (req, res, next) => {
+  const userId = req?.user?.id || "68adf362152930c835fc5e4f";
+  if (!userId) return next(new ApiError("Unauthorized", 401));
+
+  const { userName, fullName, bio, gender, accessability, phoneNumber } =
+    req.body || {};
+  // If phoneNumber is provided, encrypt it before saving
+  let encryptedPhone;
+  if (phoneNumber) {
+    try {
+      encryptedPhone = CryptoJS.AES.encrypt(
+        phoneNumber,
+        process.env.ENCRYPT
+      ).toString();
+    } catch {}
+  }
+  const updates = {
+    ...(userName && { userName }),
+    ...(fullName && { fullName }),
+    ...(bio && { bio }),
+    ...(gender && { gender }),
+    ...(accessability && { accessability }),
+    ...(encryptedPhone && { phoneNumber: encryptedPhone }),
+  };
+
+  // Handle multer filter error (wrong file type/size)
+  if (req.fileValidationError) {
+    return next(new ApiError(req.fileValidationError, 400));
+  }
+
+  // If a profile image is uploaded (field name configured in multer: 'profile')
+  if (req.file && req.file.fieldname === "profile") {
+    const localPath = req.file.path;
+    // Upload to Cloudinary under 'profiles' folder
+    const newPublicId = await uploadAsset(localPath, "profiles");
+    // Remove local temp file
+    try {
+      if (localPath && fs.existsSync(localPath)) fs.unlinkSync(localPath);
+    } catch {}
+    if (!newPublicId) {
+      return next(new ApiError("Failed to upload profile image", 500));
+    }
+
+    // Delete previous cloud image if any
+    const existing = await User.findById(userId).select("profile_pic");
+    if (!existing) return next(new ApiError("User not found", 404));
+    if (existing.profile_pic?.public_id) {
+      try {
+        await deleteAsset(existing.profile_pic.public_id);
+      } catch {}
+    }
+    updates.profile_pic = {
+      public_id: newPublicId,
+      url: getImageUrl(newPublicId, "profile"),
+    };
+  }
+
+  // If no text fields and no file are provided, nothing to update
+  if (Object.keys(updates).length === 0 && !req.file) {
+    return next(new ApiError("No valid fields to update", 400));
+  }
+
+  const user = await User.findByIdAndUpdate(userId, updates, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!user) return next(new ApiError("User not found", 404));
+
+  user.password = undefined;
+  // Ensure the response returns a URL (avoid double-transform if already URL)
+  const out = user.toObject();
+  return res.status(200).json(new ApiResponse({ user: out }));
+};
+
+const getFollowers = async (req, res, next) => {
+  const userId = req?.user?.id;
+  let followers = await Follower.find({ followed: userId })
+    .populate({
+      path: "user",
+      match: { accessibility: { $ne: "private" } },
+      select: "-password -email -phoneNumber",
+    })
+    .lean();
+
+  followers = followers.map((follower) => ({
+    ...follower.user,
+    profile_pic: follower?.user?.profile_pic?.url || null,
+  }));
+  return res.status(200).json(new ApiResponse({ data: followers }));
+};
+const getUsers = async (req, res, next) => {
+  // mongoose query, query string, options (fields, case sensitivity), pagination, sorting, selection
+  const features = await apiFeature.applyFeatures(
+    User.find(),
+    req.query,
+    {
+      fields: ["userName", "fullName", "email", "bio"],
+      caseSensitive: false,
+    },
+    {
+      defaultLimit: 20,
+      maxLimit: 100,
+      defaultSort: "-createdAt",
+      defaultSelectExclusion:
+        "-password -phoneNumber -isVerified -passwordResetToken -passwordResetExpires -__v",
+    }
+  );
+
+  // Execute the query
+  const users = await features.execute();
+
+  return res.status(200).json(
+    new ApiResponse({
+      data: users,
+      pagination: features.paginationResult,
+      message: "Users retrieved successfully",
+    })
+  );
+};
+module.exports = {
+  getOtherUserProfile,
+  getProfile,
+  getFollowers,
+  updateProfile,
+  getUsers,
+};
