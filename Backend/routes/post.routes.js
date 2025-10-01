@@ -27,7 +27,11 @@ const {
 } = require("../controllers/post.controller.js");
 const authenticate = require("../middlewares/auth-middleware.js");
 const upload = require("../config/multer.config.js");
-//h1 Get Logged user Posts
+const validate = require("../middlewares/validate.js");
+const { deletePostSchema, getPostSchema, updatePostSchema } = require("../validators/post.validator.js");
+
+
+
 router.get("/me", authenticate, getMyPosts);
 //h1 Create New Post
 router.post(
@@ -41,7 +45,7 @@ router.post(
 );
 
 router.get("/feed", authenticate, feedPosts);
-router.get("/:postId", getPost);
+router.get("/:postId", validate(getPostSchema, "params") , getPost);
 
 router.put(
   "/:postId",
@@ -50,9 +54,11 @@ router.put(
     { name: "post_video", maxCount: 1 },
     { name: "post_pic", maxCount: 1 },
   ]),
+  validate(updatePostSchema, "params"),
+  validate(updatePostSchema, "body"),
   updatePostHandler
 );
 
-router.delete("/:postId", authenticate, deletePost);
+router.delete("/:postId", validate(deletePostSchema, "params"), authenticate, deletePost);
 
 module.exports = router;
