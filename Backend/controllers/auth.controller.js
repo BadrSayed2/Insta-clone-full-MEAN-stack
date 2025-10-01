@@ -22,18 +22,13 @@ const signup = async (req, res, next) => {
     fullName,
     email,
     password,
-    confirmationPassword,
     phoneNumber,
     gender,
     bio,
     DOB,
   } = req.body;
 
-  if (password !== confirmationPassword) {
-    return next(
-      new ApiError("The password and its confirmation do not match", 400)
-    );
-  }
+
 
   const checkUser = await User.findOne({ email });
   if (checkUser) {

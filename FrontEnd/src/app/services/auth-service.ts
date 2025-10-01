@@ -30,7 +30,7 @@ export class AuthService {
 
 
   verify_otp(code: string) {
-    return this.httpClient.post<any>(this.apiUrl + "verify_otp", { code }, {
+    return this.httpClient.post<any>(this.apiUrl + "verify-otp", { code }, {
       withCredentials: true
     })
   }
