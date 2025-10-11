@@ -1,0 +1,23 @@
+1- Feeds 
+2- profile me and other profile /user/id/posts 
+3- post => comments,likes, 
+4- login, signUp  , forget password , reset password , verify email
+5- followers crud *  
+-------
+badr 
+
+1- Feeds 
+2- profile me and other profile /user/id/posts 
+
+Adham 
+3- post => comments,likes, 
+zakria 
+
+4- login, signUp  , forget password , reset password , verify email
+
+5- followers crud *  
+
+-----
+changed logged user password 
+story 
+sessions 

@@ -1,0 +1,44 @@
+<div
+    class="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-300 via-pink-500 to-violet-600 p-6">
+    <div class="w-full max-w-md">
+        <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8">
+            <!-- Header -->
+            <div class="flex flex-col items-center gap-2 mb-6">
+                <div
+                    class="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600">
+                    Insta Verify
+                </div>
+                <p class="text-sm text-gray-500 text-center">
+                    Enter the 8-digit verification code we sent you through email
+                </p>
+            </div>
+
+            <!-- Single Code Input -->
+            <div class="mb-6">
+                <input type="text" maxlength="8" pattern="[0-9]*" 
+                    inputmode="numeric" placeholder="Enter code"
+                    [(ngModel)] = "code"
+                    class="w-full h-14 sm:h-16 text-center tracking-widest text-2xl font-semibold rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent shadow-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+            </div>
+
+            <!-- Submit -->
+            <button (click)="onSubmit()"
+                class="w-full inline-flex items-center justify-center px-4 py-3 rounded-2xl text-white font-semibold shadow-lg transition bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700">
+                Verify Code
+            </button>
+
+            <!-- Resend -->
+            <div class="mt-6 text-center text-sm text-gray-600">
+                Didn't get the code?
+                <a href="#" class="font-medium text-pink-600 hover:text-pink-700 underline underline-offset-4 ml-1">
+                    Resend
+                </a>
+            </div>
+
+            <!-- Footer note -->
+            <p class="mt-4 text-xs text-gray-400 text-center">
+                Please make sure you have internet connection and check your spam folder.
+            </p>
+        </div>
+    </div>
+</div>
