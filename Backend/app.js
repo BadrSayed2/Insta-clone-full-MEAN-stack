@@ -7,6 +7,7 @@ const compression = require("compression");
 const authRouter = require("./routes/auth.routes");
 const userRouter = require("./routes/user.routes");
 const postRouter = require("./routes/post.routes");
+const reactionRouter = require("./routes/reaction.routes");
 const followRouter = require("./routes/follow.routes");
 const cors = require("cors");
 
@@ -23,6 +24,7 @@ app.use(
     credentials: true,
   })
 );
+app.set("query parser", "extended");
 app.use(express.json());
 app.use(compression());
 app.use(morganMiddleware);
@@ -35,6 +37,7 @@ app.use("/auth", authRouter);
 app.use("/users", userRouter);
 app.use("/posts", postRouter);
 app.use("/follow", followRouter);
+app.use("/reactions", reactionRouter);
 
 app.use(handleNotFound);
 
@@ -45,3 +48,4 @@ if (process.env.NODE_ENV === "development") {
   logger.info("Production Mode");
 }
 module.exports = app;
+//

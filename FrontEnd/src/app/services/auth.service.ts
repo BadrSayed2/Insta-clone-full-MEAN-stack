@@ -20,7 +20,7 @@ export class AuthService {
     })
   }
   verify(userData: any) {
-  this.url = "http://localhost:4000/auth/verify_otp";
+  this.url = "http://localhost:4000/auth/verify-otp";
   return this.httpClient.post(this.url, userData, { withCredentials: true });
 }
 forgetPassword(mailSend: { email: string }) {

@@ -1,17 +1,82 @@
 const mongoose = require("../config/connect-mongo").mongoose;
 const slugify = require("slugify");
+
+const locationSchema = new mongoose.Schema({
+  country: {
+    type: String,
+    required: true,
+  },
+  city: {
+    type: String,
+    required: true,
+  },
+  region: {
+    type: String,
+    required: true,
+  },
+  timezone: {
+    type: String,
+    required: true,
+  },
+});
+
+const deviceSchema = new mongoose.Schema({
+  browserName: String,
+  browserVersion: String,
+
+  deviceType: String,
+  deviceModel: String,
+
+  osName: String,
+  osVersion: String,
+});
+
+const sessionSchema = new mongoose.Schema({
+  refreshToken: {
+    type: String,
+    required: true,
+    default: "",
+    select: false,
+  },
+  device: {
+    type: deviceSchema,
+    required: true,
+  },
+  ip: {
+    type: String,
+    required: true,
+  },
+  location: {
+    type: locationSchema,
+    required: true,
+  },
+  expires: {
+    type: Date,
+    required: true,
+  },
+});
 const user_schema = new mongoose.Schema(
   {
-    userName: {
+    firstName: {
       type: String,
       required: true,
       minlength: 2,
-      unique: true,
+    },
+    lastName: {
+      type: String,
+      required: true,
+      minlength: 2,
     },
     fullName: {
       type: String,
       required: true,
       minlength: 2,
+    },
+    userName: {
+      type: String,
+      required: true,
+      minlength: 2,
+      unique: true,
     },
     password: {
       type: String,
@@ -68,6 +133,10 @@ const user_schema = new mongoose.Schema(
     postsCount: {
       type: Number,
       default: 0,
+    },
+    sessions: {
+      type: [sessionSchema],
+      default: null,
     },
     passwordResetToken: String,
     passwordResetExpires: Date,

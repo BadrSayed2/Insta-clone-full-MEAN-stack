@@ -141,3 +141,4 @@ vite.config.ts.timestamp-*
 Backend/*.secret.*
 keys/
 uploads/
+README.md

@@ -7,7 +7,7 @@ const Follower = require("../models/follower.model");
 
 const ApiResponse = require("../utils/api-response");
 const ApiError = require("../utils/api-error");
-
+const apiFeature = require("../utils/api-feature");
 const {
   getImageUrl,
   getVideoUrl,
@@ -161,6 +161,34 @@ const getFollowers = async (req, res, next) => {
   }));
   return res.status(200).json(new ApiResponse({ data: followers }));
 };
+const getUsers = async (req, res, next) => {
+  // mongoose query, query string, options (fields, case sensitivity), pagination, sorting, selection
+  const features = await apiFeature.applyFeatures(
+    User.find(),
+    req.query,
+    {
+      fields: ["userName", "fullName", "email", "bio"],
+      caseSensitive: false,
+    },
+    {
+      defaultLimit: 20,
+      maxLimit: 100,
+      defaultSort: "-createdAt",
+      defaultSelectExclusion:
+        "-password -phoneNumber -isVerified -passwordResetToken -passwordResetExpires -__v",
+    }
+  );
+
+  const users = await features.execute();
+
+  return res.status(200).json(
+    new ApiResponse({
+      data: users,
+      pagination: features.paginationResult,
+      message: "Users retrieved successfully",
+    })
+  );
+};
 
 const getSuggestions = async (req, res, next) => {
   try {
@@ -234,7 +262,7 @@ const getSuggestions = async (req, res, next) => {
     ])
 
     const suggestions = based_suggestions
-    
+
     const needed = limit - based_suggestions.length;
 
     const excluded = [...(suggestions.map((suggest) => suggest?.user?._id))
@@ -265,10 +293,13 @@ const getSuggestions = async (req, res, next) => {
   }
 }
 
+
 module.exports = {
   getOtherUserProfile,
   getProfile,
   getFollowers,
   updateProfile,
+  getUsers,
   getSuggestions
+
 };

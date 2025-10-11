@@ -13,24 +13,84 @@ const followUser = async (req, res, next) => {
     return next(new ApiError("You cannot follow yourself", 400));
   }
 
-  const currentUser = await User.findById({ _id: currentUserId });
+  const currentUser = await User.findById(currentUserId);
   if (!currentUser) {
     return next(new ApiError("Current user not found", 404));
   }
 
-  const userToFollow = await User.findById({ _id: userIdToFollow });
+  const userToFollow = await User.findById(userIdToFollow);
   if (!userToFollow) {
     return next(new ApiError("User to follow not found", 404));
   }
 
-  const follow = await Follower.create({
-    user: currentUser._id,
-    followed: userToFollow._id,
-  });
+  const followDoc = await Follower.findOneAndUpdate(
+    { follower: currentUser._id, following: userToFollow._id },
+    {
+      $setOnInsert: {
+        follower: currentUser._id,
+        following: userToFollow._id,
+      },
+    },
+    {
+      new: true,
+      upsert: true,
+      lean: true,
+    }
+  );
 
-  return res
-    .status(201)
-    .json(new ApiResponse({ follow }, "Followed successfully"));
+  const alreadyFollowing =
+    followDoc.createdAt && followDoc.createdAt < new Date(Date.now() - 1000);
+
+  return res.status(201).json(
+    new ApiResponse({
+      data: { user: userToFollow },
+      alreadyFollowing,
+      message: alreadyFollowing ? "Already following" : "Followed successfully",
+    })
+  );
 };
-
-module.exports = { followUser };
+const unfollowUser = async (req, res, next) => {
+  const userIdToUnfollow = req.params.targetUserId;
+  const currentUserId = req.user.id;
+  logger.debug(
+    `Unfollow request target=${userIdToUnfollow} by=${currentUserId}`
+  );
+  const unfollowDoc = await Follower.findOneAndDelete(
+    { follower: currentUserId, following: userIdToUnfollow },
+    { lean: true }
+  );
+  if (!unfollowDoc) {
+    return next(new ApiError("you already unfollowed this user", 400));
+  }
+  return res.status(200).json(
+    new ApiResponse({
+      data: { user: userIdToUnfollow },
+      message: "Unfollowed successfully",
+    })
+  );
+};
+const getFollowers = async (req, res, next) => {
+  const userId = req?.user?.id;
+  const followers = await Follower.find({ following: userId }).populate(
+    "follower"
+  );
+  return res.status(200).json(
+    new ApiResponse({
+      data: { followers },
+      message: "Followers retrieved successfully",
+    })
+  );
+};
+const getFollowing = async (req, res, next) => {
+  const userId = req?.user?.id;
+  const following = await Follower.find({ follower: userId }).populate(
+    "following"
+  );
+  return res.status(200).json(
+    new ApiResponse({
+      data: { following },
+      message: "Following retrieved successfully",
+    })
+  );
+};
+module.exports = { followUser, unfollowUser, getFollowers, getFollowing };
