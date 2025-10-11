@@ -18,6 +18,7 @@ const generateCode = require("../utils/generate-code");
  * User Signup
  */
 const signup = async (req, res, next) => {
+
   try {
     // Check if user is already authenticated (handled by skipIfAuthenticated middleware)
     if (req.user) {
@@ -27,15 +28,16 @@ const signup = async (req, res, next) => {
       });
     }
 
-    const {
-      firstName,
-      lastName,
-      email,
-      password,
-      phoneNumber,
-      gender,
-      DOB
-    } = req.body;
+  const {
+    userName,
+    fullName,
+    email,
+    password,
+    phoneNumber,
+    gender,
+    bio,
+    DOB,
+  } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({

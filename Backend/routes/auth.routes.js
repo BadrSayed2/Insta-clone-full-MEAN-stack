@@ -13,6 +13,7 @@ const {
   resendOtp,
 } = require("../controllers/auth.controller.js");
 
+
 // Import the new middleware (you'll need to update the path based on your structure)
 const {
   authenticated,
@@ -32,6 +33,11 @@ const {
   otpRateLimit,
   forgotPasswordRateLimit,
 } = require("../middlewares/validation-middleware.js");
+
+const authenticate = require("../middlewares/auth-middleware.js");
+const validate = require("../middlewares/validate.middleware.js");
+const { signupSchema, loginSchema, forgetPasswordSchema, resetPasswordSchema, verifyOtpSchema } = require("../validators/auth.validator.js");
+
 
 const router = express.Router();
 
@@ -110,4 +116,10 @@ router.get("/me", authenticated, (req, res) => {
   }
 });
 
+router.post("/signup",validate(signupSchema, "body"), signup);
+router.post("/login",validate(loginSchema, "body"), login);
+router.post("/forget-password",validate(forgetPasswordSchema, "body"), forgetPassword);
+router.post("/reset-password",validate(resetPasswordSchema, "body"), resetPassword);
+router.post("/verify-otp",validate(verifyOtpSchema, "body"), verifyOtp);
 module.exports = router;
+

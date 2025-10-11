@@ -78,8 +78,12 @@ const {
   getFollowers,
   getFollowing,
 } = require("../controllers/follow.controller.js");
-router.post("/", followUser);
+const validate = require("../middlewares/validate.middleware.js");
+const { followSchema, unfollowSchema } = require("../validators/follow.validator.js");
+
+
+router.post("/", validate(followSchema , "body") , followUser);
 router.get("/me/followers", getFollowers);
 router.get("/me/following", getFollowing);
-router.delete("/:targetUserId", unfollowUser);
+router.delete("/:targetUserId", validate(unfollowSchema , "params"), unfollowUser);
 module.exports = router;
