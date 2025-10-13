@@ -9,7 +9,7 @@ const {
   getSuggestions
 } = require("../controllers/user.controller.js");
 const upload = require("../config/multer.config.js");
-const validate = require("../middlewares/validate");
+const validate = require("../middlewares/validate.middleware.js");
 const authenticate = require("../middlewares/auth-middleware.js");
 const { getOtherUserProfileSchema, getUsersSchema, updateProfileSchema } = require("../validators/user.validator.js");
 
