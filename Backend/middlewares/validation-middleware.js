@@ -138,20 +138,20 @@ const validateResetPassword = (req, res, next) => {
 
 // OTP validation
 const validateOTP = (req, res, next) => {
-  const { code } = req.body;
-  const errors = [];
+  // const { code } = req.body;
+  // const errors = [];
 
-  if (!code) {
-    errors.push('OTP code is required');
-  } else if (typeof code !== 'string' || code.trim().length !== 8) {
-    errors.push('OTP code must be exactly 8 characters long');
-  } else if (!/^\d{8}$/.test(code.trim())) {
-    errors.push('OTP code must contain only numbers');
-  }
+  // if (!code) {
+  //   errors.push('OTP code is required');
+  // } else if (typeof code !== 'string' || code.trim().length !== 8) {
+  //   errors.push('OTP code must be exactly 8 characters long');
+  // } else if (!/^\d{8}$/.test(code.trim())) {
+  //   errors.push('OTP code must contain only numbers');
+  // }
 
-  if (errors.length > 0) {
-    return next(new ApiError(errors.join(', '), 400));
-  }
+  // if (errors.length > 0) {
+  //   return next(new ApiError(errors.join(', '), 400));
+  // }
 
   next();
 };

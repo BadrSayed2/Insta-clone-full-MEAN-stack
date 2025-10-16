@@ -110,6 +110,7 @@ async function createOrUpdateDeviceSession(user, deviceInfo, clientIp) {
     const initialSessionCount = user.sessions.length;
     user.sessions = user.sessions.filter(session => session.expires > new Date());
     
+    
     if (user.sessions.length < initialSessionCount) {
       console.log(`Cleaned up ${initialSessionCount - user.sessions.length} expired sessions`);
     }

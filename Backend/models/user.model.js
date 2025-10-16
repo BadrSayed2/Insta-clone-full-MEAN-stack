@@ -34,39 +34,25 @@ const deviceSchema = new mongoose.Schema({
 const sessionSchema = new mongoose.Schema({
   refreshToken: {
     type: String,
-    required: true,
     default: "",
     select: false,
   },
   device: {
     type: deviceSchema,
-    required: true,
   },
   ip: {
     type: String,
-    required: true,
   },
   location: {
     type: locationSchema,
-    required: true,
   },
   expires: {
     type: Date,
-    required: true,
   },
 });
+
 const user_schema = new mongoose.Schema(
   {
-    firstName: {
-      type: String,
-      required: true,
-      minlength: 2,
-    },
-    lastName: {
-      type: String,
-      required: true,
-      minlength: 2,
-    },
     fullName: {
       type: String,
       required: true,
@@ -114,6 +100,7 @@ const user_schema = new mongoose.Schema(
     },
 
     phoneNumber: String,
+    
     date_of_birth: {
       type: Date,
       required: true,

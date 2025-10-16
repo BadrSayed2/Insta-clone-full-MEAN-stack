@@ -47,19 +47,7 @@ router.get("/check", authenticated, (req, res) => {
     return res.status(200).json({
       success: true,
       message: "you are authenticated",
-      data: {
-        user: {
-          id: req.user._id,
-          userName: req.user.userName,
-          fullName: req.user.fullName,
-          email: req.user.email,
-          profilePic: req.user.profile_pic.url,
-          bio: req.user.bio,
-          followCount: req.user.followCount,
-          followingCount: req.user.followingCount,
-          postsCount: req.user.postsCount,
-        }
-      }
+      data: null
     });
   } else {
     return res.status(401).json({
@@ -71,9 +59,11 @@ router.get("/check", authenticated, (req, res) => {
 
 // Public routes (no authentication required)
 router.post('/signup', validateSignup, signupRateLimit, skipIfAuthenticated, signup);
-router.post("/login", loginRateLimit, validateLogin, skipIfAuthenticated, login);
+router.post("/login", 
+  login);
+  // loginRateLimit, validateLogin, skipIfAuthenticated,
 router.post('/verify-otp', validateOTP, otpRateLimit, verifyOtp);
-router.post('/resend-otp', validateOTP, otpRateLimit, resendOtp);
+router.get('/resend-otp', validateOTP, otpRateLimit, resendOtp);
 router.post("/forget-password", forgotPasswordRateLimit, validateForgetPassword, forgetPassword);
 router.post("/reset-password", validateResetPassword, resetPassword);
 

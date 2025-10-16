@@ -2,7 +2,7 @@ const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const User = require("../models/user.model");
 const ApiError = require("../utils/api-error");
-const { generateOTPToken, generateAccessToken } = require("../utils/jwt");
+const { generateOTPToken, generateAccessToken, generateRefreshToken, verifyOTPToken } = require("../utils/jwt");
 const {
   createOrUpdateDeviceSession,
   extractDeviceInfo,
@@ -12,7 +12,13 @@ const {
   revokeSessionById
 } = require("../utils/session-helper");
 const { emailEvent } = require("../utils/email-event");
+ const { refreshUserToken } = require("../utils/session-helper");
 const generateCode = require("../utils/generate-code");
+const { verifyRefreshToken  } = require("../utils/jwt");
+const OTP = require("../models/OTP.model");
+const ApiResponse = require("../utils/api-response");
+const CryptoJS = require("crypto-js");
+const { log } = require("console");
 
 /**
  * User Signup
@@ -69,13 +75,13 @@ const signup = async (req, res, next) => {
     await OTP.create({ userId: user._id, code });
     emailEvent.emit("sendConfirmEmail", { email, code });
 
-    const token = generateOTPToken(String(user._id));
+    const token = generateOTPToken(String(user.userName));
 
     const cookieOptions = {
       httpOnly: true,
       secure: true,
       sameSite: "Strict",
-      maxAge: 5 * 60 * 1000,
+      maxAge: 25 * 60 * 1000,
     };
 
     res.cookie("OTP_verification_token", token, cookieOptions);
@@ -93,12 +99,12 @@ const signup = async (req, res, next) => {
   }
 }
 
-
 /**
  * User Login
  */
 const login = async (req, res, next) => {
   try {
+
     // Check if user is already authenticated (handled by skipIfAuthenticated middleware)
     if (req.user) {
       return res.status(200).json({
@@ -106,7 +112,7 @@ const login = async (req, res, next) => {
         message: "Already logged in",
         data: {
           user: {
-            id: req.user._id,
+            // id: req.user._id,
             userName: req.user.userName,
             fullName: req.user.fullName,
             email: req.user.email,
@@ -129,6 +135,7 @@ const login = async (req, res, next) => {
         { userName: email.toLowerCase().trim() }
       ]
     });
+
 
     if (!user) {
       return next(new ApiError("Invalid email/username or password", 401));
@@ -171,49 +178,31 @@ const login = async (req, res, next) => {
       });
     }
 
-    // Extract device and IP information
-    const userAgent = req.headers['user-agent'];
-    const clientIp = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for']?.split(',')[0];
-    const deviceInfo = extractDeviceInfo(userAgent);
+    // Set OTP_VERIFICATION_COOKIE token in cookie
+    const code = generateCode();
+    await OTP.create({ userId: user._id, code });
+    emailEvent.emit("sendConfirmEmail", { email, code });
 
-    // Create or update device session
-    const { accessToken, sessionInfo } = await createOrUpdateDeviceSession(user, deviceInfo, clientIp);
+    const token = generateOTPToken(String(user.userName));
 
-    // Set access token in cookie
     const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       sameSite: "Strict",
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      maxAge: 25 * 60 * 1000,
     };
 
-    res.cookie("authentication", accessToken, cookieOptions);
+    res.cookie("OTP_verification_token", token, cookieOptions);
 
     // Return user data
     res.status(200).json({
       success: true,
       message: "Login successful",
-      data: {
-        user: {
-          id: user._id,
-          userName: user.userName,
-          fullName: user.fullName,
-          email: user.email,
-          profilePic: user.profile_pic.url,
-          bio: user.bio,
-          followCount: user.followCount,
-          followingCount: user.followingCount,
-          postsCount: user.postsCount,
-        },
-        sessionInfo: {
-          device: sessionInfo.device.deviceType,
-          location: `${sessionInfo.location.city}, ${sessionInfo.location.country}`
-        }
-      }
+      data: null,
     });
 
   } catch (error) {
-    console.error("Login error:", error);
+    // console.error("Login error:", error);
     return next(new ApiError("Login failed", 500));
   }
 };
@@ -223,52 +212,75 @@ const login = async (req, res, next) => {
  */
 const verifyOtp = async (req, res, next) => {
   try {
-    const { code } = req.body;
-    const { authorization } = req.headers;
-
-    if (!authorization || !authorization.startsWith('Bearer ')) {
-      return next(new ApiError("OTP token required", 401));
+    const { code } = req?.body;
+    const  OTP_token  = req.cookies["OTP_verification_token"];
+    
+    if (!OTP_token) {
+      return next(new ApiError("you need to login", 401));
     }
 
-    const otpToken = authorization.split(' ')[1];
-
+    const token = OTP_token;
+    
     try {
-      const { verifyOTPToken } = require("../utils/jwt");
-      const payload = verifyOTPToken(otpToken);
-
-      const user = await User.findById(payload.userId);
+      const payload = verifyOTPToken(token);
+      
+      console.log(payload);
+      
+      const user = await User.findOne({ userName: payload?.userName });
+      
       if (!user) {
         return next(new ApiError("User not found", 404));
       }
-
-      if (user.isVerified) {
-        return next(new ApiError("User already verified", 400));
+      
+      const otp = await OTP.findOne({ userId: user._id }).sort({ createdAt: -1 });
+      
+      console.log(otp);
+      
+      if(!otp) {
+        return next(new ApiError("OTP not found. Please request a new one.", 404));
       }
 
-      // Check if OTP has expired
-      if (!user.otpExpires || user.otpExpires < new Date()) {
-        return next(new ApiError("OTP has expired. Please request a new one.", 400));
+
+      if (!user.isVerified) {
+        user.isVerified = true;
+        await user.save();
       }
 
       // Verify the actual OTP code
-      if (!user.otpCode || user.otpCode !== code) {
+      if (!otp.code || otp.code !== code) {
         return next(new ApiError("Invalid OTP code", 400));
       }
 
-      // Mark user as verified and clear OTP data
-      user.isVerified = true;
-      user.otpCode = undefined;
-      user.otpExpires = undefined;
-      await user.save();
+
+      // Extract device and IP information
+      const userAgent = req.headers['user-agent'];
+      const clientIp = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for']?.split(',')[0];
+      const deviceInfo = extractDeviceInfo(userAgent);
+
+      // Create or update device session
+      const { accessToken, sessionInfo } = await createOrUpdateDeviceSession(user, deviceInfo, clientIp);
+
+      const cookieOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: "Strict",
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+        // maxAge: 15 * 60 * 1000, // 15 minutes
+      };
+
+      const refresh = generateRefreshToken(user._id, sessionInfo._id);
+
+      res.cookie("refreshToken", refresh, {
+        ...cookieOptions,
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
+      res.cookie("authentication", accessToken, cookieOptions);
 
       res.status(200).json({
         success: true,
         message: "Email verified successfully. You can now login.",
-        data: {
-          userId: user._id,
-          email: user.email,
-          isVerified: true
-        }
+        data: null,
       });
 
     } catch (error) {
@@ -286,19 +298,14 @@ const verifyOtp = async (req, res, next) => {
  */
 const resendOtp = async (req, res, next) => {
   try {
-    const { email } = req.body;
-
-    if (!email) {
-      return next(new ApiError("Email is required", 400));
-    }
-
-    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    const token = req.cookies["OTP_verification_token"];
+    const payload = verifyOTPToken(token);
+    console.log(payload);
+    
+    const user = await User.findOne({ userName: payload?.userName });
+    
     if (!user) {
       return next(new ApiError("User not found", 404));
-    }
-
-    if (user.isVerified) {
-      return next(new ApiError("User already verified", 400));
     }
 
     // Delete any existing OTPs for this user
@@ -314,7 +321,7 @@ const resendOtp = async (req, res, next) => {
     await otp.save();
 
     // Generate new OTP token
-    const otpToken = generateOTPToken(user._id);
+    const otpToken = generateOTPToken(user.userName);
 
     // Send OTP email
     emailEvent.emit("sendConfirmEmail", {
@@ -326,7 +333,6 @@ const resendOtp = async (req, res, next) => {
       success: true,
       message: "New OTP sent to your email",
       data: {
-        userId: user._id,
         email: user.email,
         otpToken, // Remove in production
       }
@@ -341,25 +347,39 @@ const resendOtp = async (req, res, next) => {
 /**
  * Refresh Token (Legacy support - mainly for API clients)
  */
+
 const refreshToken = async (req, res, next) => {
   try {
-    const { refreshToken: providedRefreshToken } = req.body;
+    const { refreshToken: providedRefreshToken } = req.cookies["refreshToken"];
 
     if (!providedRefreshToken) {
-      return next(new ApiError("Refresh token required", 401));
+      return next(new ApiError("you need to login", 401));
     }
 
     // Use legacy refresh method for API clients
-    const { refreshUserToken } = require("../utils/session-helper");
-    const result = await refreshUserToken(providedRefreshToken);
+    // const result = await refreshUserToken(providedRefreshToken);
+    const payload = verifyRefreshToken(providedRefreshToken);
+    const user = await User.findById(payload.userId);
+    
+    if (!user) {
+      return next(new ApiError("you need to login", 401));
+    }
+
+    const { accessToken, sessionInfo } = await createOrUpdateDeviceSession(user, deviceInfo, clientIp);
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: "Strict",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      // maxAge: 15 * 60 * 1000, // 15 minutes
+    };
+    res.cookie("authentication", accessToken, cookieOptions);
 
     res.status(200).json({
       success: true,
       message: "Token refreshed successfully",
-      data: {
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken
-      }
+      data: null
     });
 
   } catch (error) {
