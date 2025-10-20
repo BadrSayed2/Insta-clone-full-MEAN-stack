@@ -12,6 +12,7 @@ const {
 } = require("../utils/media");
 const ApiResponse = require("../utils/api-response");
 const ApiError = require("../utils/api-error");
+const { mongoose } = require("../config/connect-mongo");
 //! @desc    Get a post by ID
 // @route   GET /posts/:postId
 // @access  private/user
@@ -158,7 +159,7 @@ const updatePostHandler = async (req, res, next) => {
     if (foundPost?.media?.publicId) {
       await deleteAsset(foundPost?.media?.publicId, mediaType);
     }
-  } catch (e) { 
+  } catch (e) {
     console.log(e.message);
   }
 
@@ -232,19 +233,71 @@ const feedPosts = async (req, res, next) => {
   const following = await Follower.find({ user: userId }).select(
     "followed -_id"
   );
-  const followingIds = following.map((f) => f.followed);
+  const followingIds = following.map((f) => new mongoose.Types.ObjectId(f?.followed));
 
-  const db_posts = await Post.find({ userId: { $in: followingIds } })
-    .sort({ createdAt: -1 })
-    .skip(offset * 15)
-    .limit(15)
-    .select("-userId")
-    .populate({
-      path: "userId",
-      select: "userName fullName profile_pic accessabilty",
-    })
-    .lean();
-  const posts = db_posts.map((post) => {
+  const follower_post_number = Math.random() * 15;
+  const db_posts = await Post.aggregate([
+    { $match: { userId: { $in: followingIds }, privacy: { $in: ["public", "followers"] } } },
+    {
+      $lookup: {
+        from: "users",
+        localField: "userId",
+        foreignField: "_id",
+        as: "user"
+      }
+    },
+    { $unwind: "$user" },
+    { $sample: { size: 100 } },
+    { $sort: { createdAt: -1 } },
+    { $skip: Math.floor(offset * 15) },
+    {
+      $project: {
+        "user.profile_pic": 1,
+        "user.userName": 1,
+        "user.fullName": 1,
+        "media": 1,
+        "caption": 1,
+        "createdAt": 1,
+        "commentsNumber": 1,
+        "likesNumber": 1,
+      }
+    },
+    { $limit: Math.floor(follower_post_number) },
+  ])
+  const filler_post_number = 15 - db_posts.length
+
+  const filler_posts = await Post.aggregate([
+    { $match: { privacy: { $in: ["public", "followers"] } } },
+    {
+      $lookup: {
+        from: "users",
+        localField: "userId",
+        foreignField: "_id",
+        as: "user"
+      }
+    },
+    { $unwind: "$user" },
+    { $sample: { size: 100 } },
+    { $sort: { createdAt: -1 } },
+    { $skip: Math.floor(offset * 15) },
+    {
+      $project: {
+        "user.profile_pic": 1,
+        "user.userName": 1,
+        "user.fullName": 1,
+        "media": 1,
+        "caption": 1,
+        "createdAt": 1,
+        "commentsNumber": 1,
+        "likesNumber": 1,
+      }
+    },
+    { $limit: filler_post_number },
+  ]);
+
+  const db_posts_combined = db_posts.concat(filler_posts);
+
+  const posts = db_posts_combined.map((post) => {
     const hasHttpUrl =
       typeof post?.media?.url === "string" && post.media.url.startsWith("http");
     if (!hasHttpUrl) {
