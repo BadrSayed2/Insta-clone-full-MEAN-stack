@@ -1,7 +1,7 @@
 import { Component, inject } from "@angular/core";
 import { Router, RouterLink } from "@angular/router";
 import { CommonModule } from "@angular/common";
-import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { AuthService } from "app/services/auth.service";
 
 @Component({
@@ -24,54 +24,61 @@ import { AuthService } from "app/services/auth.service";
         <div
           class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg p-8"
         >
-          <form
-            [formGroup]="loginForm"
-            (ngSubmit)="onSubmit()"
-            class="space-y-4"
+        <form
+          [formGroup]="loginForm"
+          (ngSubmit)="onSubmit()"
+          class="space-y-4"
+        >
+          <!-- Email -->
+          <div>
+            <input
+              type="text"
+              formControlName="email"
+              placeholder="Phone number, username, or email"
+              class="input-field"
+            />
+            <div class="validation text-danger mt-1">
+              @if (email?.invalid && (email?.dirty || email?.touched)) {
+                @if (email?.errors?.['required']) {
+                  <small>البريد الإلكتروني مطلوب</small>
+                }
+                @if (email?.errors?.['email']) {
+                  <small>صيغة البريد الإلكتروني غير صحيحة</small>
+                }
+              }
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div>
+            <input
+              type="password"
+              formControlName="password"
+              placeholder="Password"
+              class="input-field"
+            />
+            <div class="validation text-danger mt-1">
+              @if (password?.invalid && (password?.dirty || password?.touched)) {
+                @if (password?.errors?.['required']) {
+                  <small>كلمة المرور مطلوبة</small>
+                }
+                @if (password?.errors?.['pattern']) {
+                  <small>يجب أن تحتوي على حرف كبير وصغير ورقم ورمز خاص</small>
+                }
+              }
+            </div>
+          </div> <!-- ✅ اتقفلت هنا -->
+
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            class="w-full py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            [disabled]="loginForm.invalid"
           >
-            <!-- Email -->
-            <div>
-              <input
-                type="text"
-                formControlName="email"
-                placeholder="Phone number, username, or email"
-                class="input-field"
-              />
-              <div
-                *ngIf="email?.invalid && (email?.dirty || email?.touched)"
-                class="text-red-500 text-sm mt-1"
-              >
-                <div *ngFor="let err of getErrors('email')">{{ err }}</div>
-              </div>
-            </div>
+            Log In
+          </button>
+        </form>
 
-            <!-- Password -->
-            <div>
-              <input
-                type="password"
-                formControlName="password"
-                placeholder="Password"
-                class="input-field"
-              />
-              <div
-                *ngIf="
-                  password?.invalid && (password?.dirty || password?.touched)
-                "
-                class="text-red-500 text-sm mt-1"
-              >
-                <div *ngFor="let err of getErrors('password')">{{ err }}</div>
-              </div>
-            </div>
-
-            <!-- Submit Button -->
-            <button
-              type="submit"
-              class="w-full py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50"
-              [disabled]="loginForm.invalid"
-            >
-              Log In
-            </button>
-          </form>
 
           <!-- OR Divider -->
           <div class="flex items-center my-6">
@@ -127,13 +134,13 @@ import { AuthService } from "app/services/auth.service";
   `,
 })
 export class LoginComponent {
-  private fb = inject(FormBuilder);
   private loginApi = inject(AuthService);
-
-  loginForm = this.fb.group({
-    email: ["", [Validators.required, Validators.email]],
-    password: ["", [Validators.required, Validators.minLength(6)]],
-  });
+  constructor(private router: Router) {}
+  
+loginForm:FormGroup = new FormGroup({
+  email: new FormControl('',[Validators.required, Validators.email]),
+  password: new FormControl ('' , [Validators.required,  Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/)]),
+}) 
 
   get email() {
     return this.loginForm.get("email");
@@ -142,26 +149,11 @@ export class LoginComponent {
     return this.loginForm.get("password");
   }
 
-  getErrors(controlName: string): string[] {
-    const control = this.loginForm.get(controlName);
-    if (!control || !control.errors) return [];
+  
 
-    const errors: string[] = [];
-    if (control.errors["required"]) errors.push(`${controlName} is required`);
-    if (control.errors["email"]) errors.push("Enter a valid email");
-    if (control.errors["minlength"])
-      errors.push(
-        `${controlName} must be at least ${control.errors["minlength"].requiredLength} characters`
-      );
-
-    return errors;
-  }
-
-  constructor(private router: Router) {}
 
   onSubmit() {
-    // TODO: Replace with real login. On success, go to OTP verification.
-
+    this.router.navigate(['/loading']);
     if (this.loginForm.invalid) return;
 
     this.loginApi.loginUser(this.loginForm.value).subscribe({
@@ -176,6 +168,7 @@ export class LoginComponent {
         } else if (err.status === 400) {
           alert("Invalid email or password.");
         } else {
+          this.router.navigate(["/login"]);
           alert("An unexpected error occurred. Please try again.");
         }
       },
