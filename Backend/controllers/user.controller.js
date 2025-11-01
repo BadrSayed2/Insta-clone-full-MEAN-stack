@@ -14,6 +14,7 @@ const {
   uploadAsset,
   deleteAsset,
 } = require("../utils/media");
+const { mongoose } = require("../config/connect-mongo");
 
 const getOtherUserProfile = async (req, res, next) => {
   const userName = req.params.username;
@@ -44,7 +45,7 @@ const getProfile = async (req, res, next) => {
       ).toString(CryptoJS.enc.Utf8);
       // Use decrypted only if it yields a non-empty string
       if (decrypted) profile.phoneNumber = decrypted;
-    } catch {}
+    } catch { }
   }
   let userPosts = await Post.find({ userId: userId })
     .sort({ createdAt: -1 })
@@ -83,7 +84,7 @@ const updateProfile = async (req, res, next) => {
         phoneNumber,
         process.env.ENCRYPT
       ).toString();
-    } catch {}
+    } catch { }
   }
   const updates = {
     ...(userName && { userName }),
@@ -107,7 +108,7 @@ const updateProfile = async (req, res, next) => {
     // Remove local temp file
     try {
       if (localPath && fs.existsSync(localPath)) fs.unlinkSync(localPath);
-    } catch {}
+    } catch { }
     if (!newPublicId) {
       return next(new ApiError("Failed to upload profile image", 500));
     }
@@ -118,7 +119,7 @@ const updateProfile = async (req, res, next) => {
     if (existing.profile_pic?.public_id) {
       try {
         await deleteAsset(existing.profile_pic.public_id);
-      } catch {}
+      } catch { }
     }
     updates.profile_pic = {
       public_id: newPublicId,
@@ -178,7 +179,6 @@ const getUsers = async (req, res, next) => {
     }
   );
 
-  // Execute the query
   const users = await features.execute();
 
   return res.status(200).json(
@@ -189,10 +189,117 @@ const getUsers = async (req, res, next) => {
     })
   );
 };
+
+const getSuggestions = async (req, res, next) => {
+  try {
+    const user_id = req?.user?.id;
+    const limit = req?.query?.limit || 10;
+    const myFollows = (await Follower.find({ user: new mongoose.Types.ObjectId(user_id) }).distinct("followed"))
+    myFollows.push(new mongoose.Types.ObjectId(user_id));
+
+    const based_suggestions = await Follower.aggregate([
+      {
+        $match: { user: new mongoose.Types.ObjectId(user_id) }
+      },
+      {
+        $lookup: {
+          from: "Follower",
+          localField: "followed",
+          foreignField: "followed",
+          as: "mutual_followers"
+        }
+      }, {
+        $unwind: "$mutual_followers"
+      }, {
+        $group: {
+          _id: "$mutual_followers.user",
+          mutual_follows_count: { $sum: 1 },
+        }
+      },
+      {
+        $sort: { mutual_follows_count: -1 },
+      },
+      {
+        $match: {
+          $and: [
+            { _id: { $ne: new mongoose.Types.ObjectId(user_id) } },
+            { _id: { $nin: myFollows } }
+          ]
+        }
+      }
+      , {
+        $sample: { size: 1000 }
+      }
+      , {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "user_details",
+        },
+      },
+      {
+        $unwind: "$user_details",
+      },
+      {
+        $project: {
+          user: "$user_details",
+          mutual_follows_count: 1,
+          user: {
+            _id: "$user_details._id",
+            userName: "$user_details.userName",
+            fullName: "$user_details.fullName",
+            email: "$user_details.email",
+            profile_pic: "$user_details.profile_pic",
+            bio: "$user_details.bio",
+          },
+        },
+      },
+      {
+        $limit: parseInt((limit * 2) / 3),
+      },
+
+    ])
+
+    const suggestions = based_suggestions
+
+    const needed = limit - based_suggestions.length;
+
+    const excluded = [...(suggestions.map((suggest) => suggest?.user?._id))
+      , ...myFollows]
+
+    const fillerSuggestions = await User.aggregate([
+      { $match: { _id: { $nin: excluded } } },
+      { $sample: { size: needed } },
+      {
+        $project: {
+          _id: 1,
+          userName: 1,
+          fullName: 1,
+          profile_pic: 1,
+          bio: 1,
+
+        },
+      },
+    ])
+
+    suggestions.push(...fillerSuggestions)
+
+
+    return res.status(200).json(new ApiResponse({ data: suggestions }));
+
+  } catch (e) {
+    return next(new ApiError(e.message, 500));
+  }
+}
+
+
 module.exports = {
   getOtherUserProfile,
   getProfile,
   getFollowers,
   updateProfile,
   getUsers,
+  getSuggestions
+
 };

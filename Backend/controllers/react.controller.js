@@ -1,14 +1,17 @@
+
+const Post = require("../models/post.model");
+const ApiResponse = require("../utils/api-response");
 const apiError = require("../utils/api-error");
-const apiResponse = require("../utils/api-response");
-const Posts = require("../models/post.model");
 const Reactions = require("../models/Reaction.model");
+
+
 const toggleReaction = async (req, res, next) => {
   const { targetType, targetId, type = "like" } = req.body;
   const userId = req.user.id;
   let target;
-  //h1 1) check if target specified is valid (posts or comments)
+  //h1 1) check if target specified is valid (Post or comments)
   if (targetType === "Post") {
-    target = await Posts.findById(targetId);
+    target = await Post.findById(targetId);
   }
   if (!target) {
     return next(new apiError(`No ${targetType} found with this ID`, 404));
@@ -23,7 +26,7 @@ const toggleReaction = async (req, res, next) => {
     await Reactions.findByIdAndDelete(existingReaction._id);
     res
       .status(200)
-      .json(new apiResponse({ message: "Reaction removed successfully" }));
+      .json(new ApiResponse({ message: "Reaction removed successfully" }));
   } else {
     const reaction = await Reactions.create({
       user: userId,
@@ -34,7 +37,8 @@ const toggleReaction = async (req, res, next) => {
     await reaction.populate("user", "userName profile_pic");
     res
       .status(200)
-      .json(new apiResponse({ message: "Reaction added successfully" }));
+      .json(new ApiResponse({ message: "Reaction added successfully" }));
   }
 };
-module.exports = { toggleReaction };
+
+module.exports = { toggleReaction};

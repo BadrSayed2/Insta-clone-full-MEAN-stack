@@ -56,6 +56,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: "loading",
+    loadComponent: () =>
+      import("./components/loading/loading").then(
+        (m) => m.Loading
+      ),
+  },
+  {
     path: "post-details/:id",
     canActivate : [authGuard],
     loadComponent: () =>

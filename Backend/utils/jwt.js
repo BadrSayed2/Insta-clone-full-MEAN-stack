@@ -23,9 +23,9 @@ const refreshPrivateKey = fs.readFileSync(
   path.join(__dirname, "../keys/refresh/refresh_private_key.pem"),
   "utf-8"
 );
-const generateOTPToken = (userId) => {
-  const otpToken = jwt.sign({ userId }, otpPrivateKey, {
-    expiresIn: "5m",
+const generateOTPToken = (userName) => {
+  const otpToken = jwt.sign({ userName }, otpPrivateKey, {
+    expiresIn: "55m",
     algorithm: "RS256",
   });
   return otpToken;
@@ -49,6 +49,10 @@ const verifyAccessToken = (token) => {
   return jwt.verify(token, authPublicKey, { algorithms: ["RS256"] });
 };
 
+const verifyRefreshToken = (token) => {
+  return jwt.verify(token, refreshPublicKey, { algorithms: ["RS256"] });
+};
+
 const verifyOTPToken = (token) => {
   return jwt.verify(token, otpPublicKey, { algorithms: ["RS256"] });
 };
@@ -59,4 +63,5 @@ module.exports = {
   generateRefreshToken,
   verifyAccessToken,
   verifyOTPToken,
+  verifyRefreshToken 
 };

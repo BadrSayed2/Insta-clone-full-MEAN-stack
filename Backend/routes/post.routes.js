@@ -1,4 +1,4 @@
-const router = require("express").Router();
+
 /**
  * /users
   GET    /users/me
@@ -16,6 +16,7 @@ const router = require("express").Router();
   GET    /posts/feed            → get feed posts
   nested routes for comments and likes
  */
+const express = require('express');
 
 const {
   createPost,
@@ -27,8 +28,9 @@ const {
 } = require("../controllers/post.controller.js");
 const authenticate = require("../middlewares/auth-middleware.js");
 const upload = require("../config/multer.config.js");
-const validate = require("../middlewares/validate.js");
+const validate = require("../middlewares/validate.middleware.js");
 const { deletePostSchema, getPostSchema, updatePostSchema } = require("../validators/post.validator.js");
+const router = express.Router();
 
 
 

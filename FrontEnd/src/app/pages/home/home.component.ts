@@ -53,5 +53,6 @@ export class HomeComponent implements OnInit {
     { username: "travel_buddy", mutualFriends: 12 },
     { username: "foodie_life", mutualFriends: 8 },
     { username: "fitness_guru", mutualFriends: 15 },
+    
   ];
 }
